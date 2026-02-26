@@ -32,4 +32,5 @@ function App() {
   )
 }
 
+// this line is vital, otherwise these methods are invisible from outside
 export default App
