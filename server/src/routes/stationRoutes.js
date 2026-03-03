@@ -4,6 +4,7 @@ import { getAllStations } from '../controllers/stationController.js';
 
 const router = express.Router();
 
-router.get('/stations', getAllStations);
+// every get queery to /api/station will run getAllStations
+router.get('/', getAllStations);
 
 export default router;
