@@ -1,7 +1,7 @@
 // here we decide which data is being sent
 
 // test
-// backend/src/controllers/stationController.js
+// returns all stations
 export const getAllStations = (req, res) => {
   const stations = [
     { id: 1, name: "Madrid Puerta de Atocha", lat: 40.4065, lng: -3.6896 },
