@@ -1,12 +1,23 @@
-// here we decide which data is being sent
+import * as StationService from '../services/stationService.js';
 
-// test
-// returns all stations
-export const getAllStations = (req, res) => {
-  const stations = [
-    { id: 1, name: "Madrid Puerta de Atocha", lat: 40.4065, lng: -3.6896 },
-    { id: 2, name: "Barcelona Sants", lat: 41.3792, lng: 2.1406 }
-  ];
-  
-  res.json(stations);
+/**
+ * GET /api/stations
+ * Sends filtered station data to the client
+ */
+export const getAllStations = async (req, res) => {
+  try {
+    const stations = await StationService.getCercaniasStations();
+    
+    // Return a structured response
+    res.status(200).json({
+      success: true,
+      count: stations.length,
+      data: stations
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
 };
