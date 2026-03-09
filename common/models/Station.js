@@ -1,3 +1,4 @@
+// This needs decoupling
 export class Station {
   constructor(record) {
     if (!record) return;
