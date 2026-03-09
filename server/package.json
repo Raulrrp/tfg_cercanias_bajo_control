@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "@tfg_cercanias_bajo_control/server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
