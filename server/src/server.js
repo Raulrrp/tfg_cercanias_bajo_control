@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 // stationRoutes import
-import stationRoutes from './routes/stationRoutes.js';
+import stationRoutes from './routes/station-routes.js';
 // reads the .env file to read variables
 dotenv.config();
 const app = express();

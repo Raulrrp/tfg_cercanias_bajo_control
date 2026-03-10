@@ -1,4 +1,4 @@
-import { StationMapper } from '../mappers/StationMapper.js';
+import { StationMapper } from '../mappers/station-mapper.js';
 import fs from 'fs/promises';
 import path from 'path';
 
