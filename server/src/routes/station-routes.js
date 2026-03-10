@@ -1,6 +1,6 @@
 // backend/src/routes/stationRoutes.js
 import express from 'express';
-import { getAllStations } from '../controllers/stationController.js';
+import { getAllStations } from '../controllers/station-controller.js';
 
 const router = express.Router();
 
