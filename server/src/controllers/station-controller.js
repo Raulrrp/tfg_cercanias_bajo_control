@@ -1,4 +1,4 @@
-import * as StationService from '../services/stationService.js';
+import * as StationService from '../services/station-service.js';
 
 /**
  * GET /api/stations
