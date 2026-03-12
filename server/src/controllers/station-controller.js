@@ -8,15 +8,10 @@ export const getAllStations = async (req, res) => {
   try {
     const stations = await StationService.getCercaniasStations();
     
-    // Return a structured response
-    res.status(200).json({
-      success: true,
-      count: stations.length,
-      data: stations
-    });
+    // Return the domain objects as JSON array
+    res.status(200).json(stations);
   } catch (error) {
     res.status(500).json({ 
-      success: false, 
       message: error.message 
     });
   }

@@ -18,7 +18,7 @@ describe('fetchStations', () => {
     ];
 
     // 2. MOCKING: "Fake" the global fetch function of the browser.
-    // It returns a successful response (ok: true) with our mock JSON.
+    // It returns a successful response (ok: true) with mock JSON array.
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
