@@ -1,18 +1,17 @@
-// has to convert json into model object
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import {Station} from "@tfg_cercanias_bajo_control/common/models/Station.js";
 
 export const fetchStations = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/stations`);
-    if (!response.ok) throw new Error('Error al conectar con el servidor');
-    
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/stations`);
+    if (!response.ok) throw new Error('Failed to fetch stations');
     const data = await response.json();
-    console.log(data);
-    return data; 
+
+    // map returns an element for each item in the array
+    // we convert each json object into a Station and return it
+    // in an array form
+    return data.map(stationJson => Station.fromJson(stationJson));
   } catch (error) {
-    console.error("Error en stationService:", error);
-    // void array if error
-    return []; 
+    console.error('Error fetching stations:', error);
+    throw error;
   }
 };
