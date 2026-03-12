@@ -42,9 +42,10 @@ export const fetchStations = async () => {
     );
 
     // 4. Flatten the nested arrays and map them to the Station model
-    return allStationsNested
-      .flat() 
-      .map(record => StationMapper.toDomain(record));
+    const flattened = allStationsNested.flat();
+    const stations = flattened.map(record => StationMapper.toDomain(record));
+    
+    return stations;
 
   } catch (error) {
     // Log technical error and throw a readable message
