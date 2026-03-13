@@ -7,6 +7,9 @@ dist
 build
 coverage
 
+# Ignore client
+client/
+
 # Ignore secrets (Docker will use environment variables, not the file)
 .env
 .env.*
