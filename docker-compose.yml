@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  # Your server
+  server:
+    build: ./server
+    ports:
+        # HOST_PORT (from .env) : CONTAINER_PORT (Fixed 3000)
+      - "${PORT}:3000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/${POSTGRES_DB}
+    volumes:
+      - ./server:/usr/src/app # enables live changes
+      - /usr/src/app/node_modules
+    env_file:
+     - .env
