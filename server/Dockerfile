@@ -22,5 +22,8 @@ COPY server/ ./server/
 # Exposing the port
 EXPOSE 3000
 
+# Changing workspace to find dev script in server/package.json
+WORKDIR /usr/src/app/server
+
 # Initialization command
 CMD ["npm", "run", "dev"]
