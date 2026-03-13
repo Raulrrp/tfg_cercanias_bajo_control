@@ -1,0 +1,20 @@
+# Ignore local dependencies (Docker will install its own clean version)
+node_modules
+npm-debug.log
+
+# Ignore local build artifacts
+dist
+build
+coverage
+
+# Ignore secrets (Docker will use environment variables, not the file)
+.env
+.env.*
+
+# Ignore Git metadata
+.git
+.gitignore
+
+# Ignore system files
+.DS_Store
+Thumbs.db
