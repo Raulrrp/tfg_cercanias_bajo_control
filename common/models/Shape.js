@@ -1,4 +1,4 @@
-class Shape{
+export class Shape{
     constructor({id, latitude, longitude, sequence}){
         this.id = id;
         this.latitude = latitude;
