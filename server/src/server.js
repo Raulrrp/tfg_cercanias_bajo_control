@@ -24,7 +24,8 @@ app.get('/', (req, res) => {
 });
 
 // the server listens to the port 3000, it there is no .env info, it uses 3000
+// added 0.0.0.0 to allow connections from outside the container
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
