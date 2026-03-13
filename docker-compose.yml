@@ -1,7 +1,11 @@
 services:
   # Your server
   server:
-    build: ./server
+    build:
+    # use root as context to reed common folder
+      context: .
+      # use server Dockerfile
+      dockerfile: server/Dockerfile
     ports:
         # HOST_PORT (from .env) : CONTAINER_PORT (Fixed 3000)
       - "${PORT}:3000"
@@ -10,7 +14,12 @@ services:
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     volumes:
-      - ./server:/usr/src/app # enables live changes
+      # enables live changes
+      - ./server:/usr/src/app/server 
+      - ./common:/usr/src/app/common
+      # ignores node_modules to avoid conflicts between host and container
       - /usr/src/app/node_modules
+      - /usr/src/app/server/node_modules
+      
     env_file:
      - .env
