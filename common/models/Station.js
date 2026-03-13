@@ -1,7 +1,6 @@
 export class Station{
-  constructor({id, code, name, latitude, longitude, address, zipcode, city, province}){
+  constructor({id, name, latitude, longitude, address, zipcode, city, province}){
     this.id = id;
-    this.code = code;
     this.name = name;
     this.latitude = latitude;
     this.longitude = longitude;
@@ -13,7 +12,6 @@ export class Station{
   static fromJson(json) {
     return new Station({
       id: json.id,
-      code: json.code,
       name: json.name,
       latitude: json.latitude,
       longitude: json.longitude,
@@ -27,7 +25,6 @@ export class Station{
   toJson() {
     return {
       id: this.id,
-      code: this.code,
       name: this.name,
       latitude: this.latitude,
       longitude: this.longitude,

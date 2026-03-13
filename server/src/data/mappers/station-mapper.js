@@ -5,8 +5,7 @@ export class StationMapper {
   static toDomain(record) {
     this.#counter++;
     return new Station({
-      id: this.#counter,
-      code: parseInt(record[0], 10),
+      id: parseInt(record[0], 10),
       name: record[1],
       latitude: parseFloat(record[2].replace(',', '.')),
       longitude: parseFloat(record[3].replace(',', '.')),
