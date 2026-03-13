@@ -13,6 +13,8 @@ client/
 # Ignore secrets (Docker will use environment variables, not the file)
 .env
 .env.*
+docker-compose.yml
+README.md
 
 # Ignore Git metadata
 .git
