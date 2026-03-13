@@ -8,7 +8,8 @@ services:
       dockerfile: server/Dockerfile
     ports:
         # HOST_PORT (from .env) : CONTAINER_PORT (Fixed 3000)
-      - "${PORT}:3000"
+        # added 127.0.0.1 to avoid exposing the port to the whole network, only to the host machine
+      - "127.0.0.1:${PORT}:3000"
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
