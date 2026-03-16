@@ -42,7 +42,7 @@ export const fetchShapes = async () => {
         // 6. If it's a new shapeId, create a new Shape instance 
         // We initialize it with an array containing our first point
         const newShape = new Shape({ 
-          id: shapeId, 
+          id: shapeId,
           shapePoints: [currentPoint]
         });
         shapesMap.set(shapeId, newShape);
