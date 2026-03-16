@@ -1,4 +1,3 @@
-// backend/src/routes/stationRoutes.js
 import express from 'express';
 import { getAllStations } from '../controllers/station-controller.js';
 
