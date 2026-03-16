@@ -1,5 +1,6 @@
 export class Shape{
 
+    // you can give the fist point or not
     constructor({id, shapePoint}){
         this.id = id;
         // If it's already an array, keep it. If it's a single item, put it in an array.
