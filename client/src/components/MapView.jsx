@@ -3,13 +3,14 @@ import 'leaflet/dist/leaflet.css';
 
 // hooks & components
 import { useStations } from '../hooks/station-hook.js';
+import { useShapes } from '../hooks/shape-hook.js'; // Import the new hook
 import StationMarker from './StationMarker.jsx';
 
 const MapView = () => {
-  // Aproximate coordinates of the center of Spain
   const position = [40.4167, -3.7037];
 
-  const { stations, error } = useStations();
+  const { stations, error: stationError } = useStations();
+  const { shapes, error: shapeError } = useShapes(); // Load the shapes
 
   return (
     <MapContainer 
@@ -24,16 +25,31 @@ const MapView = () => {
       />
       <ZoomControl position="topright" />
 
-      {/* Optionally display an error message on the map */}
-      {error && <div className="map-error">{error}</div>}
+      {(stationError || shapeError) && (
+        <div className="map-error">{stationError || shapeError}</div>
+      )}
 
-      {/* render a marker for each station */}
+      {/* 1. Render Train Lines (Shapes) */}
+      {shapes.map(shape => {
+        // Transform shapePoints objects into Leaflet [lat, lon] arrays
+        const polylinePositions = shape.shapePoints.map(p => [
+          p.latitude, 
+          p.longitude
+        ]);
+
+        return (
+          <Polyline 
+            key={shape.id} 
+            positions={polylinePositions} 
+            pathOptions={{ color: '#ff4d4d', weight: 3, opacity: 0.7 }} 
+          />
+        );
+      })}
+
+      {/* 2. Render Station Markers */}
       {stations.map(st => (
         <StationMarker key={st.id} station={st} />
       ))}
-
-      {/* Map here your train lines from a GeoJson or service */}
-      {/* <Polyline positions={lineData} color="red" /> */}
     </MapContainer>
   );
 };
