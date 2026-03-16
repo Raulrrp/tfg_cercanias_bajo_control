@@ -4,6 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 // stationRoutes import
 import stationRoutes from './routes/station-routes.js';
+// shapeRoutes import
+import shapeRoutes from './routes/shape-routes.js';
 // reads the .env file to read variables
 dotenv.config();
 const app = express();
@@ -17,6 +19,8 @@ app.use(cors());
 app.use(express.json());
 // every query with /api/stations will be handled by stationRoutes.
 app.use('/api/stations', stationRoutes);
+// every query with /api/shapes will be handled by shapeRoutes.
+app.use('/api/shapes', shapeRoutes);
 
 //  test path
 app.get('/', (req, res) => {
