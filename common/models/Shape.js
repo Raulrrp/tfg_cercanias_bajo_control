@@ -1,24 +1,28 @@
 export class Shape{
-    constructor({id, latitude, longitude, sequence}){
+
+    constructor({id, shapePoint}){
         this.id = id;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.sequence = sequence;
+        // If it's already an array, keep it. If it's a single item, put it in an array.
+        // If it's missing, make it an empty array.
+        if (!shapePoint) {
+            this.shapePoints = [];
+        } else {
+            this.shapePoints = Array.isArray(shapePoint) ? shapePoint : [shapePoint];
+        }
     }
     static fromJson(json) {
         return new Shape({
             id: json.id,
-            latitude: json.latitude,
-            longitude: json.longitude,
-            sequence: json.sequence
+            shapePoints: json.shapePoints?.map(point => ShapePoint.fromJson(point)) || []
         });
     }
     toJson() {
         return {
             id: this.id,
-            latitude: this.latitude,
-            longitude: this.longitude,
-            sequence: this.sequence
+            shapePoints: this.shapePoints.map(point => point.toJson())
         };
+    }
+    addShapePoint(shapePoint) {
+        this.shapePoints.push(shapePoint);
     }
 }
