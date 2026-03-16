@@ -1,3 +1,13 @@
+import fs from 'fs/promises';
+import path from 'path';
+import { parse } from 'csv-parse/sync';
+import { Shape } from '@tfg_cercanias_bajo_control/common/models/Shape.js';
+import { ShapePoint } from '@tfg_cercanias_bajo_control/common/models/ShapePoint.js';
+
+const SHAPES_FILE_PATH = path.join(process.cwd(), 'data_files','shapes', 'shapes.txt');
+
+let cachedShapes = null;
+
 export const fetchShapes = async () => {
   try {
     // 1. Return cached data if available
