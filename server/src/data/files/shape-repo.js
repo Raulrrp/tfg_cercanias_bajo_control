@@ -43,7 +43,7 @@ export const fetchShapes = async () => {
         // We initialize it with an array containing our first point
         const newShape = new Shape({ 
           id: shapeId, 
-          shapePoint: currentPoint
+          shapePoints: [currentPoint]
         });
         shapesMap.set(shapeId, newShape);
       } else {
