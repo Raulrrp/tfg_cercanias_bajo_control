@@ -15,9 +15,6 @@ const STATIONS_DIR_PATH = path.join(process.cwd(), 'data_files', 'stations');
  */
 export const fetchStations = async () => {
   try {
-    // 0. Reset the counter in the Mapper to ensure IDs start from 1 on every fresh fetch
-    StationMapper.resetCounter();
-
     // 1. List all files in the directory
     const files = await fs.readdir(STATIONS_DIR_PATH);
 
