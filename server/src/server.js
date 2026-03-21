@@ -24,7 +24,7 @@ const app = express();
 // WHATCHOUT: origin: "*" is not recommended for prod
 const httpServer = createServer(app); 
 const io = new Server(httpServer, {
-  cors: { origin: "*" }
+  cors: { origin: "http://localhost:5173" }
 });
 
 // Middlewares
@@ -32,7 +32,7 @@ const io = new Server(httpServer, {
 // enables React to communicate with the servere with no blocking threat
 // enables React (port 5173) to connect to the server (port 3000)
 app.use(cors()); 
-// the servere will understand JSON
+// the server will understand JSON
 app.use(express.json());
 
 // every query with /api/stations will be handled by stationRoutes.
