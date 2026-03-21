@@ -2,14 +2,13 @@
 import axios from 'axios';
 
 import { TrainPos } from '@tfg_cercanias_bajo_control/common/models/TrainPos.js';
-import { Train } from '@tfg_cercanias_bajo_control/common/models/Train.js';
 
 const RENFE_URL = 'https://gtfsrt.renfe.com/vehicle_positions.json';
 
 // Keep the last version in cache
 let cachedTrains = [];
 
-export const fetchRenfePositions = async () => {
+export const fetchTrains = async () => {
   try {
     const response = await axios.get(RENFE_URL);
     const data = response.data;
@@ -19,16 +18,16 @@ export const fetchRenfePositions = async () => {
     const mappedTrains = data.entity.map(entity => {
       const v = entity.vehicle;
       
-      // Cast the train from Json to our Train model
-      const trainInfo = Train.fromJson({
+      // Cast raw train to json
+      const trainJson = {
         id: v.vehicle.id,
         label: v.vehicle.label
-      });
+      }
 
       // We map the raw data to our TrainPos model
       return TrainPos.fromJson({
         id: entity.id,
-        train: trainInfo,
+        train: trainJson,
         trip: v.trip.tripId,
         latitude: v.position.latitude,
         longitude: v.position.longitude,

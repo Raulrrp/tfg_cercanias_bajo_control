@@ -1,4 +1,4 @@
-// whatch out, this json is not the same as the one in the api
+import {Train} from "./Train.js";
 export class TrainPos {
   constructor({ id, train, trip, latitude, longitude, status, timestamp, nextStop}) {
     this.id = id;
@@ -13,7 +13,7 @@ export class TrainPos {
   static fromJson(json){
     return new TrainPos({
       id: json.id,
-      train: json.train,
+      train: Train.fromJson(json.train),
       trip: json.trip,
       latitude: json.latitude,
       longitude: json.longitude,
@@ -25,7 +25,7 @@ export class TrainPos {
   toJson(){
     return{
       id: this.id,
-      train: this.train,
+      train: this.train.toJson(),
       trip: this.trip,
       latitude: this.latitude,
       longitude: this.longitude,
