@@ -6,16 +6,16 @@ export const getUpdates = async () => {
 }
 
 export const getUpdateByTrainId = async (trainId) => {
-    // Train updates are keyed by trip_id, so we resolve train id -> trip_id first.
+    // Train updates are keyed by tripId, so we resolve train id -> tripId first.
     const trains = await fetchTrains();
     const train = trains.find(t => String(t.train?.id) === String(trainId));
-    if (!train?.trip_id) return null;
+    if (!train?.tripId) return null;
 
-    return getUpdateByTripId(train.trip_id);
+    return getUpdateByTripId(train.tripId);
 }
 
 export const getUpdateByTripId = async (tripId) => {
     const data = await fetchUpdates();
-    const update = data.find(update => String(update.trip_id) === String(tripId));
+    const update = data.find(update => String(update.tripId) === String(tripId));
     return update ?? null;
 }
