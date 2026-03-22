@@ -1,9 +1,9 @@
 import {Train} from "./Train.js";
 export class TrainPos {
-  constructor({ id, train, trip, latitude, longitude, status, timestamp, nextStop}) {
+  constructor({ id, train, trip_id, latitude, longitude, status, timestamp, nextStop}) {
     this.id = id;
     this.train = train;
-    this.trip = trip;
+    this.trip_id = trip_id;
     this.latitude = latitude;
     this.longitude = longitude;
     this.status = status;
@@ -14,7 +14,7 @@ export class TrainPos {
     return new TrainPos({
       id: json.id,
       train: Train.fromJson(json.train),
-      trip: json.trip,
+      trip_id: json.trip_id,
       latitude: json.latitude,
       longitude: json.longitude,
       status: json.status,
@@ -26,7 +26,7 @@ export class TrainPos {
     return{
       id: this.id,
       train: this.train.toJson(),
-      trip: this.trip,
+      trip_id: this.trip_id,
       latitude: this.latitude,
       longitude: this.longitude,
       status: this.status,
