@@ -3,7 +3,7 @@ import * as UpdateService from '../services/update-service.js';
 export const getUpdates = async (req, res) => {
     try {
         const updates = await UpdateService.getUpdates();
-        res.json(updates.toJson());
+        res.json(updates.map(update => update.toJson()));
     } catch (error) {
         console.error("Error in update controller:", error);
         res.status(500).json({ error: "Could not fetch updates" });
