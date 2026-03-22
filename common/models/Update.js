@@ -6,15 +6,16 @@ export class Update{
         this.scheduledTime = scheduledTime;
         this.delay = delay;
         this.nextStopId = nextStopId;
+
     }
     static fromJson(json){
         return new Update(
-            this.id = json.id,
-            this.trip_id = json.trip_id,
-            this.scheduledState = json.scheduledState,
-            this.scheduledTime = json.scheduledTime,
-            this.delay = json.delay,
-            this.nextStopId = json.nextStopId,
+            json.id,
+            json.trip_id,
+            json.scheduledState,
+            json.scheduledTime,
+            json.delay,
+            json.nextStopId
         )
     }
     toJson(){
