@@ -16,7 +16,7 @@ const STATIONS_DIR_PATH = path.join(process.cwd(), 'data_files', 'stations');
 export const fetchStations = async () => {
   try {
     // 1. List all files in the directory
-    const files = await fs.readdir(STATIONS_DIR_PATH);
+    const files = (await fs.readdir(STATIONS_DIR_PATH)).filter(file => file.toLowerCase().endsWith('.csv'));
 
     // 2. Process all files in parallel
     const allStationsNested = await Promise.all(
@@ -46,7 +46,7 @@ export const fetchStations = async () => {
 
   } catch (error) {
     // Log technical error and throw a readable message
-    console.error(`[FileSystem Error]: Failed to read file at ${STATIONS_FILE_PATH}`, error);
+    console.error(`[FileSystem Error]: Failed to read files in ${STATIONS_DIR_PATH}`, error);
     throw new Error('Database file could not be read');
   }
 };
