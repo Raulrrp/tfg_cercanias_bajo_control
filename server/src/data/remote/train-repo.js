@@ -28,7 +28,7 @@ export const fetchTrains = async () => {
       return TrainPos.fromJson({
         id: entity.id,
         train: trainJson,
-        trip: v.trip.tripId,
+        trip_id: v.trip.tripId,
         latitude: v.position.latitude,
         longitude: v.position.longitude,
         status: v.currentStatus,
