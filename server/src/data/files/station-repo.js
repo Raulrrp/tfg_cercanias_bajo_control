@@ -47,6 +47,6 @@ export const fetchStations = async () => {
   } catch (error) {
     // Log technical error and throw a readable message
     console.error(`[FileSystem Error]: Failed to read files in ${STATIONS_DIR_PATH}`, error);
-    throw new Error('Database file could not be read');
+    throw error;
   }
 };
