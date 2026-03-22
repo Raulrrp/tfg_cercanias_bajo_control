@@ -3,19 +3,19 @@ import axios from 'axios';
 
 import { TrainPos } from '@tfg_cercanias_bajo_control/common/models/TrainPos.js';
 
-const RENFE_URL = 'https://gtfsrt.renfe.com/vehicle_positions.json';
+const RENFE_POSITIONS_URL = 'https://gtfsrt.renfe.com/vehicle_positions.json';
 
 // Keep the last version in cache
 let cachedTrains = [];
 
 export const fetchTrains = async () => {
   try {
-    const response = await axios.get(RENFE_URL);
+    const response = await axios.get(RENFE_POSITIONS_URL);
     const data = response.data;
 
     if (!data.entity) return [];
 
-    const mappedTrains = data.entity.map(entity => {
+    const jsonTrains = data.entity.map(entity => {
       const v = entity.vehicle;
       
       // Cast raw train to json
@@ -37,7 +37,7 @@ export const fetchTrains = async () => {
       });
     });
 
-    cachedTrains = mappedTrains;
+    cachedTrains = jsonTrains;
     return cachedTrains;
   } catch (error) {
     console.error("Error fetching Renfe positions:", error);
