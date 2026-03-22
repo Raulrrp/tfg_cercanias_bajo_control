@@ -1,7 +1,7 @@
 export class Update{
-    constructor(id, trip_id, scheduledState, scheduledTime, delay, nextStopId){
+    constructor(id, tripId, scheduledState, scheduledTime, delay, nextStopId){
         this.id = id;
-        this.trip_id = trip_id;
+        this.tripId = tripId;
         this.scheduledState = scheduledState;
         this.scheduledTime = scheduledTime;
         this.delay = delay;
@@ -11,7 +11,7 @@ export class Update{
     static fromJson(json){
         return new Update(
             json.id,
-            json.trip_id,
+            json.tripId,
             json.scheduledState,
             json.scheduledTime,
             json.delay,
@@ -21,7 +21,7 @@ export class Update{
     toJson(){
         return {
             id: this.id,
-            trip_id: this.trip_id,
+            tripId: this.tripId,
             scheduledState: this.scheduledState,
             scheduledTime: this.scheduledTime,
             delay: this.delay,

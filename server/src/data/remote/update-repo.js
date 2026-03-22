@@ -22,7 +22,7 @@ export const fetchUpdates = async () => {
                 // Return the instance directly
                 return Update.fromJson({
                     id: update.id,
-                    trip_id: tripUpdate.trip.tripId,
+                    tripId: tripUpdate.trip.tripId,
                     scheduledState: tripUpdate.trip.scheduleRelationship,
                     scheduledTime: validStop.arrival.time,
                     delay: tripUpdate.delay,
