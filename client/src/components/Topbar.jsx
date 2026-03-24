@@ -22,7 +22,7 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
         width: '100%',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         gap: '1rem',
         padding: '0.9rem 1.2rem',
         boxSizing: 'border-box',
@@ -40,7 +40,7 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
           display: 'flex',
           alignItems: 'center',
           gap: '0.6rem',
-          marginLeft: 'auto'
+          marginLeft: 40
         }}
       >
         <label htmlFor="filter-mode" style={{ fontSize: '0.9rem', fontWeight: 600 }}>
