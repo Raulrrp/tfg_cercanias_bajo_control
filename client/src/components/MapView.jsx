@@ -7,8 +7,9 @@ import { useStations } from '../hooks/station-hook.js';
 import { useShapes } from '../hooks/shape-hook.js'; // Import the new hook
 import { useTrains } from '../hooks/train-hook.js';
 import StationMarker from './StationMarker.jsx';
+import TrainInfoCard from './TrainInfoCard.jsx';
 
-const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTrainSelect }) => {
+const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
   const map = useMap();
 
   useEffect(() => {
@@ -66,8 +67,18 @@ const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTr
             click: () => onTrainSelect(train)
           }}
         >
-          <Popup>
-            {train.train?.label || train.train?.id || 'Train'}
+          <Popup autoOpen={selectedTrain?.id === train.id}>
+            {selectedTrain?.id === train.id ? (
+              <TrainInfoCard
+                train={selectedTrain}
+                nextStopName={getStationNameById(selectedTrain.nextStop)}
+                delay={null}
+                onClose={onCloseTrainCard}
+                inPopup={true}
+              />
+            ) : (
+              <span>{train.train?.label || train.train?.id || 'Train'}</span>
+            )}
           </Popup>
         </CircleMarker>
       ))}
@@ -75,7 +86,7 @@ const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTr
   );
 };
 
-const MapView = ({ searchQuery, onSearchError, onTrainSelect }) => {
+const MapView = ({ searchQuery, onSearchError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
   const position = [40.4167, -3.7037];
 
   const { stations, error: stationError } = useStations();
@@ -100,6 +111,9 @@ const MapView = ({ searchQuery, onSearchError, onTrainSelect }) => {
           stations={stations} 
           shapes={shapes}
           onTrainSelect={onTrainSelect}
+          selectedTrain={selectedTrain}
+          onCloseTrainCard={onCloseTrainCard}
+          getStationNameById={getStationNameById}
         />
       </MapContainer>
     </>

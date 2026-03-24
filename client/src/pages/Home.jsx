@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Topbar from '../components/Topbar';
 import MapView from '../components/MapView';
-import TrainInfoCard from '../components/TrainInfoCard';
 import { useStations } from '../hooks/station-hook.js';
 
 const Home = () => {
@@ -38,9 +37,7 @@ const Home = () => {
     setSelectedTrain(train);
   };
 
-  const handleCloseTrainCard = () => {
-    setSelectedTrain(null);
-  };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
@@ -57,15 +54,10 @@ const Home = () => {
           searchQuery={searchQuery}
           onSearchError={(msg) => setSearchError(msg)}
           onTrainSelect={handleTrainSelect}
+          selectedTrain={selectedTrain}
+          onCloseTrainCard={() => setSelectedTrain(null)}
+          getStationNameById={getStationNameById}
         />
-        {selectedTrain && (
-          <TrainInfoCard
-            train={selectedTrain}
-            nextStopName={getStationNameById(selectedTrain.nextStop)}
-            delay={null}
-            onClose={handleCloseTrainCard}
-          />
-        )}
       </div>
     </div>
   );

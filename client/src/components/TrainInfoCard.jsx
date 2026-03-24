@@ -41,16 +41,18 @@ const rowStyle = {
   marginTop: '0.45rem'
 };
 
-const TrainInfoCard = ({ train, nextStopName, delay, onClose }) => {
+const TrainInfoCard = ({ train, nextStopName, delay, onClose, inPopup = false }) => {
   if (!train) return null;
 
-  return (
-    <div style={cardStyle}>
+  const content = (
+    <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <strong>Informacion del tren</strong>
-        <button type="button" aria-label="Cerrar tarjeta" onClick={onClose} style={closeButtonStyle}>
-          x
-        </button>
+        {!inPopup && (
+          <button type="button" aria-label="Cerrar tarjeta" onClick={onClose} style={closeButtonStyle}>
+            x
+          </button>
+        )}
       </div>
 
       <div style={rowStyle}>
@@ -62,6 +64,16 @@ const TrainInfoCard = ({ train, nextStopName, delay, onClose }) => {
       <div style={rowStyle}>
         <strong>Delay:</strong> {formatDelay(delay)}
       </div>
+    </>
+  );
+
+  if (inPopup) {
+    return content;
+  }
+
+  return (
+    <div style={cardStyle}>
+      {content}
     </div>
   );
 };
