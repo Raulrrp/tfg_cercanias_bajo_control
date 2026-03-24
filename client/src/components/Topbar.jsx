@@ -1,23 +1,15 @@
-import { useState } from 'react';
-
-const Topbar = ({ filterMode, onFilterModeChange, onSearch, searchError, selectedTrainText }) => {
-  const [filterValue, setFilterValue] = useState('');
-  const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
+const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChange, onSearch, searchError, selectedTrainText }) => {
 
   const handleModeChange = (e) => {
-    setFilterValue('');
-    setIsEditingFilterValue(false);
     onFilterModeChange(e.target.value);
   };
 
   const handleValueChange = (e) => {
-    setFilterValue(e.target.value);
-    setIsEditingFilterValue(true);
+    onFilterValueChange(e.target.value);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && filterValue.trim() !== '') {
-      setIsEditingFilterValue(false);
       onSearch(filterMode, filterValue);
     }
   };
@@ -99,7 +91,7 @@ const Topbar = ({ filterMode, onFilterModeChange, onSearch, searchError, selecte
           <option value="15345" />
           <option value="Atocha" />
         </datalist>
-        {!isEditingFilterValue && searchError && (
+        {searchError && (
           <div style={{
             color: '#dc2626',
             fontSize: '0.85rem',
