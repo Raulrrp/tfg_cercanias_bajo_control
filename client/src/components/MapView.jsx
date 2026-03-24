@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Polyline, ZoomControl, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 // hooks & components
 import { useStations } from '../hooks/station-hook.js';
@@ -11,10 +11,17 @@ import TrainInfoCard from './TrainInfoCard.jsx';
 
 const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
   const map = useMap();
+  const markerRefs = useRef(new Map());
 
   // zoom to selected train
   useEffect(() => {
     if (!selectedTrain) return;
+
+    const marker = markerRefs.current.get(selectedTrain.id);
+    if (marker) {
+      marker.openPopup();
+    }
+
     map.setView([selectedTrain.latitude, selectedTrain.longitude], 15);
   }, [selectedTrain, map]);
 
@@ -66,6 +73,13 @@ const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTr
       {trains.map(train => (
         <CircleMarker
           key={train.id}
+          ref={(marker) => {
+            if (marker) {
+              markerRefs.current.set(train.id, marker);
+            } else {
+              markerRefs.current.delete(train.id);
+            }
+          }}
           center={[train.latitude, train.longitude]}
           radius={6}
           pathOptions={{ color: '#005f73', fillColor: '#0a9396', fillOpacity: 0.95, weight: 1 }}
@@ -73,7 +87,15 @@ const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTr
             click: () => onTrainSelect(train)
           }}
         >
-          <Popup>
+          <Popup
+            eventHandlers={{
+              remove: () => {
+                if (selectedTrain?.id === train.id) {
+                  onCloseTrainCard();
+                }
+              }
+            }}
+          >
             <TrainInfoCard
               train={train}
               nextStopName={getStationNameById(train.nextStop)}
