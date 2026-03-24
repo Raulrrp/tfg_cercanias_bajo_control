@@ -1,16 +1,23 @@
 import { useState } from 'react';
 
-const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChange, onSearch, searchError }) => {
+const Topbar = ({ filterMode, onFilterModeChange, onSearch, searchError, selectedTrainText }) => {
+  const [filterValue, setFilterValue] = useState('');
+  const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
+
   const handleModeChange = (e) => {
+    setFilterValue('');
+    setIsEditingFilterValue(false);
     onFilterModeChange(e.target.value);
   };
 
   const handleValueChange = (e) => {
-    onFilterValueChange(e.target.value);
+    setFilterValue(e.target.value);
+    setIsEditingFilterValue(true);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && filterValue.trim() !== '') {
+      setIsEditingFilterValue(false);
       onSearch(filterMode, filterValue);
     }
   };
@@ -92,7 +99,7 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
           <option value="15345" />
           <option value="Atocha" />
         </datalist>
-        {searchError && (
+        {!isEditingFilterValue && searchError && (
           <div style={{
             color: '#dc2626',
             fontSize: '0.85rem',
@@ -100,6 +107,16 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
             fontWeight: 500
           }}>
             {searchError}
+          </div>
+        )}
+        {selectedTrainText && (
+          <div style={{
+            color: '#2563eb',
+            fontSize: '0.85rem',
+            marginLeft: '0.5rem',
+            fontWeight: 500
+          }}>
+            {selectedTrainText}
           </div>
         )}
       </div>
