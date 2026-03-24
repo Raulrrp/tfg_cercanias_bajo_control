@@ -19,12 +19,14 @@ const Home = () => {
     setFilterValue('');
     setIsEditingFilterValue(false);
     setSearchError('');
+    setSelectedTrain(null);
   };
 
   const handleFilterValueChange = (newValue) => {
     setFilterValue(newValue);
     setIsEditingFilterValue(true);
     setSearchError('');
+    setSelectedTrain(null);
   };
 
   const handleSearch = (mode, value) => {
