@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Topbar from '../components/Topbar';
 import MapView from '../components/MapView';
 import TrainInfoCard from '../components/TrainInfoCard';
+import { useStations } from '../hooks/station-hook.js';
 
 const Home = () => {
   // filterMode is the current state value
@@ -12,6 +13,7 @@ const Home = () => {
   const [searchError, setSearchError] = useState('');
   const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState(null);
+  const { getStationNameById } = useStations();
 
   const handleFilterModeChange = (newMode) => {
     setFilterMode(newMode);
@@ -59,7 +61,7 @@ const Home = () => {
         {selectedTrain && (
           <TrainInfoCard
             train={selectedTrain}
-            nextStopName={selectedTrain.nextStop}
+            nextStopName={getStationNameById(selectedTrain.nextStop)}
             delay={null}
             onClose={handleCloseTrainCard}
           />
