@@ -15,27 +15,29 @@ export const fetchTrains = async () => {
 
     if (!data.entity) return [];
 
-    const jsonTrains = data.entity.map(entity => {
-      const v = entity.vehicle;
-      
-      // Cast raw train to json
-      const trainJson = {
-        id: v.vehicle.id,
-        label: v.vehicle.label
-      }
+    const jsonTrains = data.entity
+      .filter(entity => entity.vehicle && entity.vehicle.position) // Skip trains without position
+      .map(entity => {
+        const v = entity.vehicle;
+        
+        // Cast raw train to json
+        const trainJson = {
+          id: v.vehicle.id,
+          label: v.vehicle.label
+        }
 
-      // We map the raw data to our TrainPos model
-      return TrainPos.fromJson({
-        id: entity.id,
-        train: trainJson,
-        tripId: v.trip.tripId,
-        latitude: v.position.latitude,
-        longitude: v.position.longitude,
-        status: v.currentStatus,
-        timestamp: v.timestamp,
-        nextStop: v.stopId
+        // We map the raw data to our TrainPos model
+        return TrainPos.fromJson({
+          id: entity.id,
+          train: trainJson,
+          tripId: v.trip.tripId,
+          latitude: v.position.latitude,
+          longitude: v.position.longitude,
+          status: v.currentStatus,
+          timestamp: v.timestamp,
+          nextStop: v.stopId
+        });
       });
-    });
 
     cachedTrains = jsonTrains;
     return cachedTrains;
