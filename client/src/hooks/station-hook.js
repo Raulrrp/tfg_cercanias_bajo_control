@@ -20,5 +20,11 @@ export const useStations = () => {
     loadStations();
   }, []);
 
-  return { stations, error };
+  const getStationNameById = (stationId) => {
+    if (!stationId) return null;
+    const station = stations.find((st) => st.id == stationId);
+    return station?.name ?? null;
+  };
+
+  return { stations, error, getStationNameById };
 };
