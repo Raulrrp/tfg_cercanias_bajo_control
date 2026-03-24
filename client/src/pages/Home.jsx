@@ -4,24 +4,31 @@ import MapView from '../components/MapView';
 import TrainInfoCard from '../components/TrainInfoCard';
 
 const Home = () => {
+  // filterMode is the current state value
+  // setFilterMode is the function to update the state value
   const [filterMode, setFilterMode] = useState('zona-urbana');
   const [filterValue, setFilterValue] = useState('');
   const [searchQuery, setSearchQuery] = useState(null);
   const [searchError, setSearchError] = useState('');
+  const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState(null);
 
   const handleFilterModeChange = (newMode) => {
     setFilterMode(newMode);
     setFilterValue('');
+    setIsEditingFilterValue(false);
     setSearchError('');
   };
 
   const handleFilterValueChange = (newValue) => {
     setFilterValue(newValue);
+    setIsEditingFilterValue(true);
     setSearchError('');
   };
 
   const handleSearch = (mode, value) => {
+    setSearchError('');
+    setIsEditingFilterValue(false);
     setSearchQuery({ mode, value });
   };
 
@@ -41,7 +48,7 @@ const Home = () => {
         onFilterModeChange={handleFilterModeChange}
         onFilterValueChange={handleFilterValueChange}
         onSearch={handleSearch}
-        searchError={searchError}
+        searchError={isEditingFilterValue ? '' : searchError}
       />
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <MapView
