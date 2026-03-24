@@ -1,5 +1,5 @@
 const formatDelay = (delay) => {
-  if (delay == null) return 'Sin datos de delay';
+  if (delay == null) return 'Sin retraso';
 
   const delaySeconds = Number(delay);
   if (Number.isNaN(delaySeconds)) return String(delay);
