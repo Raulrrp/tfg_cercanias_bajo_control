@@ -12,6 +12,13 @@ import TrainInfoCard from './TrainInfoCard.jsx';
 const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
   const map = useMap();
 
+  // zoom to selected train
+  useEffect(() => {
+    if (!selectedTrain) return;
+    map.setView([selectedTrain.latitude, selectedTrain.longitude], 15);
+  }, [selectedTrain, map]);
+
+
   useEffect(() => {
     if (!searchQuery || searchQuery.mode !== 'id-tren') return;
 
@@ -19,13 +26,12 @@ const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTr
     const train = trains.find(t => t.id === trainId || t.train?.id === trainId);
 
     if (train) {
-      // Zoom to the train
-      map.setView([train.latitude, train.longitude], 12);
+      onTrainSelect(train);
       onSearchError('');
     } else {
       onSearchError(`Tren con ID "${trainId}" no encontrado`);
     }
-  }, [searchQuery, trains, map, onSearchError]);
+  }, [searchQuery, trains, map, onSearchError, onTrainSelect]);
 
   return (
     <>
@@ -67,18 +73,14 @@ const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTr
             click: () => onTrainSelect(train)
           }}
         >
-          <Popup autoOpen={selectedTrain?.id === train.id}>
-            {selectedTrain?.id === train.id ? (
-              <TrainInfoCard
-                train={selectedTrain}
-                nextStopName={getStationNameById(selectedTrain.nextStop)}
-                delay={null}
-                onClose={onCloseTrainCard}
-                inPopup={true}
-              />
-            ) : (
-              <span>{train.train?.label || train.train?.id || 'Train'}</span>
-            )}
+          <Popup>
+            <TrainInfoCard
+              train={train}
+              nextStopName={getStationNameById(train.nextStop)}
+              delay={null}
+              onClose={onCloseTrainCard}
+              inPopup={true}
+            />
           </Popup>
         </CircleMarker>
       ))}
