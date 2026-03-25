@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import Topbar from '../components/Topbar';
 import MapView from '../components/MapView';
 import { useStations } from '../hooks/station-hook.js';
-import { useTrains } from '../hooks/train-hook.js';
+import { useRealtimeSnapshot } from '../hooks/realtime-hook.js';
 
 const Home = () => {
   // filterMode is the current state value
@@ -16,7 +16,7 @@ const Home = () => {
   const [selectedTrain, setSelectedTrain] = useState(null);
   const [zoomTarget, setZoomTarget] = useState(null);
   const { getStationNameById, stations } = useStations();
-  const { trains, error: trainError } = useTrains();
+  const { trains, updates, error: trainError } = useRealtimeSnapshot();
 
   const handleFilterModeChange = (newMode) => {
     setFilterMode(newMode);
@@ -107,6 +107,7 @@ const Home = () => {
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <MapView
           trains={trains}
+          updates={updates}
           trainError={trainError}
           onTrainSelect={handleTrainSelect}
           selectedTrain={selectedTrain}

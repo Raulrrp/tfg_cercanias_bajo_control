@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Polyline, ZoomControl, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 // hooks & components
 import { useStations } from '../hooks/station-hook.js';
@@ -8,7 +8,7 @@ import { useShapes } from '../hooks/shape-hook.js'; // Import the new hook
 import StationMarker from './StationMarker.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
 
-const MapContent = ({ trains, stations, shapes, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
+const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
   const markerRefs = useRef(new Map());
 
@@ -97,7 +97,7 @@ const MapContent = ({ trains, stations, shapes, onTrainSelect, selectedTrain, on
             <TrainInfoCard
               train={train}
               nextStopName={getStationNameById(train.nextStop)}
-              delay={null}
+              delay={delayByTripId.get(String(train.tripId))}
               onClose={onCloseTrainCard}
               inPopup={true}
             />
@@ -108,11 +108,19 @@ const MapContent = ({ trains, stations, shapes, onTrainSelect, selectedTrain, on
   );
 };
 
-const MapView = ({ trains, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
+const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
   const position = [40.4167, -3.7037];
 
   const { stations, error: stationError } = useStations();
   const { shapes, error: shapeError } = useShapes(); // Load the shapes
+
+  const delayByTripId = useMemo(() => {
+    const map = new Map();
+    updates.forEach((update) => {
+      map.set(String(update.tripId), update.delay);
+    });
+    return map;
+  }, [updates]);
 
   return (
     <>
@@ -129,6 +137,7 @@ const MapView = ({ trains, trainError, onTrainSelect, selectedTrain, onCloseTrai
           trains={trains} 
           stations={stations} 
           shapes={shapes}
+          delayByTripId={delayByTripId}
           onTrainSelect={onTrainSelect}
           selectedTrain={selectedTrain}
           onCloseTrainCard={onCloseTrainCard}
