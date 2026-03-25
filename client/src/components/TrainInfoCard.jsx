@@ -62,7 +62,7 @@ const TrainInfoCard = ({ train, nextStopName, delay, onClose, inPopup = false })
         <strong>Siguiente parada:</strong> {nextStopName ?? train.nextStop ?? 'No disponible'}
       </div>
       <div style={rowStyle}>
-        <strong>Delay:</strong> {formatDelay(delay)}
+        <strong>Retraso:</strong> {formatDelay(delay)}
       </div>
     </>
   );
