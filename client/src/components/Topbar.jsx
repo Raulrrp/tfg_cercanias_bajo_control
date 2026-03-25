@@ -1,4 +1,4 @@
-const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChange, onSearch, searchError, selectedTrainText }) => {
+const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChange, onSearch, searchError, selectedTrainText, filterOptions = [] }) => {
 
   const handleModeChange = (e) => {
     onFilterModeChange(e.target.value);
@@ -86,10 +86,9 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
           }}
         />
         <datalist id="filter-value-options">
-          <option value="Zona 1" />
-          <option value="C1" />
-          <option value="15345" />
-          <option value="Atocha" />
+          {filterOptions.map((option) => (
+            <option key={option.id} value={option.name} />
+          ))}
         </datalist>
         {searchError && (
           <div style={{
