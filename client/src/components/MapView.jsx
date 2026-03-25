@@ -5,40 +5,30 @@ import { useEffect, useRef } from 'react';
 // hooks & components
 import { useStations } from '../hooks/station-hook.js';
 import { useShapes } from '../hooks/shape-hook.js'; // Import the new hook
-import { useTrains } from '../hooks/train-hook.js';
 import StationMarker from './StationMarker.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
 
-const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
+const MapContent = ({ trains, stations, shapes, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
   const map = useMap();
   const markerRefs = useRef(new Map());
 
-  // zoom to selected train
+  // Follow the selected train using its latest coordinates from the live train list.
   useEffect(() => {
     if (!selectedTrain) return;
 
-    const marker = markerRefs.current.get(selectedTrain.id);
+    const liveSelectedTrain = trains.find(
+      (train) => train.id === selectedTrain.id || train.train?.id === selectedTrain.id
+    );
+
+    if (!liveSelectedTrain) return;
+
+    const marker = markerRefs.current.get(liveSelectedTrain.id);
     if (marker) {
       marker.openPopup();
     }
 
-    map.setView([selectedTrain.latitude, selectedTrain.longitude], 15);
-  }, [selectedTrain, map]);
-
-
-  useEffect(() => {
-    if (!searchQuery || searchQuery.mode !== 'id-tren') return;
-
-    const trainId = searchQuery.value.trim();
-    const train = trains.find(t => t.id === trainId || t.train?.id === trainId);
-
-    if (train) {
-      onTrainSelect(train);
-      onSearchError('');
-    } else {
-      onSearchError(`Tren con ID "${trainId}" no encontrado`);
-    }
-  }, [searchQuery, trains, map, onSearchError, onTrainSelect]);
+    map.setView([liveSelectedTrain.latitude, liveSelectedTrain.longitude], 15);
+  }, [selectedTrain, trains]);
 
   return (
     <>
@@ -110,12 +100,11 @@ const MapContent = ({ searchQuery, onSearchError, trains, stations, shapes, onTr
   );
 };
 
-const MapView = ({ searchQuery, onSearchError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
+const MapView = ({ trains, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
   const position = [40.4167, -3.7037];
 
   const { stations, error: stationError } = useStations();
   const { shapes, error: shapeError } = useShapes(); // Load the shapes
-  const { trains, error: trainError } = useTrains();
 
   return (
     <>
@@ -129,8 +118,6 @@ const MapView = ({ searchQuery, onSearchError, onTrainSelect, selectedTrain, onC
         zoomControl={false}
       >
         <MapContent 
-          searchQuery={searchQuery} 
-          onSearchError={onSearchError}
           trains={trains} 
           stations={stations} 
           shapes={shapes}
