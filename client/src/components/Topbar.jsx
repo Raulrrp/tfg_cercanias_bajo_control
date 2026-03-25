@@ -14,6 +14,12 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
     }
   };
 
+  const handleSearchClick = () => {
+    if (filterValue.trim() !== '') {
+      onSearch(filterMode, filterValue);
+    }
+  };
+
   return (
     <header
       className="topbar"
@@ -66,25 +72,54 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
           <option value="nombre-estacion">Nombre de estacion</option>
         </select>
 
-        <input
-          id="filter-value"
-          name="filter-value"
-          list="filter-value-options"
-          type="text"
-          placeholder="Escribe o selecciona un valor"
-          value={filterValue}
-          onChange={handleValueChange}
-          onKeyDown={handleKeyDown}
+        <div
           style={{
-            minWidth: '260px',
-            padding: '0.5rem 0.65rem',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            color: '#1f2937',
-            fontSize: '0.92rem'
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0
           }}
-        />
+        >
+          <input
+            id="filter-value"
+            name="filter-value"
+            list="filter-value-options"
+            type="text"
+            placeholder="Escribe o selecciona un valor"
+            value={filterValue}
+            onChange={handleValueChange}
+            onKeyDown={handleKeyDown}
+            style={{
+              minWidth: '260px',
+              padding: '0.5rem 0.65rem',
+              borderRadius: '8px 0 0 8px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              color: '#1f2937',
+              fontSize: '0.92rem'
+            }}
+          />
+          <button
+            onClick={handleSearchClick}
+            style={{
+              padding: '0.5rem 0.65rem',
+              borderRadius: '0 8px 8px 0',
+              border: '1px solid #cbd5e1',
+              borderLeft: 'none',
+              backgroundColor: '#ffffff',
+              color: '#1f2937',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
+          >
+            🔍
+          </button>
+        </div>
         <datalist id="filter-value-options">
           {filterOptions.map((option) => (
             <option key={option.id} value={option.name} />
