@@ -8,7 +8,7 @@ import { useShapes } from '../hooks/shape-hook.js'; // Import the new hook
 import StationMarker from './StationMarker.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
 
-const MapContent = ({ trains, stations, shapes, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
+const MapContent = ({ trains, stations, shapes, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
   const markerRefs = useRef(new Map());
 
@@ -29,6 +29,14 @@ const MapContent = ({ trains, stations, shapes, onTrainSelect, selectedTrain, on
 
     map.setView([liveSelectedTrain.latitude, liveSelectedTrain.longitude], 15);
   }, [selectedTrain, trains]);
+
+  // Zoom to station on search (one-time, no follow).
+  useEffect(() => {
+    if (!zoomTarget) return;
+
+    map.setView([zoomTarget.lat, zoomTarget.lng], 15);
+    onZoomComplete();
+  }, [zoomTarget, map, onZoomComplete]);
 
   return (
     <>
@@ -100,7 +108,7 @@ const MapContent = ({ trains, stations, shapes, onTrainSelect, selectedTrain, on
   );
 };
 
-const MapView = ({ trains, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById }) => {
+const MapView = ({ trains, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
   const position = [40.4167, -3.7037];
 
   const { stations, error: stationError } = useStations();
@@ -125,6 +133,8 @@ const MapView = ({ trains, trainError, onTrainSelect, selectedTrain, onCloseTrai
           selectedTrain={selectedTrain}
           onCloseTrainCard={onCloseTrainCard}
           getStationNameById={getStationNameById}
+          zoomTarget={zoomTarget}
+          onZoomComplete={onZoomComplete}
         />
       </MapContainer>
     </>

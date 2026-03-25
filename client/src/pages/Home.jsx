@@ -14,7 +14,8 @@ const Home = () => {
   const [searchError, setSearchError] = useState('');
   const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState(null);
-  const { getStationNameById } = useStations();
+  const [zoomTarget, setZoomTarget] = useState(null);
+  const { getStationNameById, stations } = useStations();
   const { trains, error: trainError } = useTrains();
 
   const handleFilterModeChange = (newMode) => {
@@ -32,26 +33,49 @@ const Home = () => {
     setSelectedTrain(null);
   };
 
+  const getFilterOptions = () => {
+    if (filterMode !== 'nombre-estacion' || !filterValue.trim()) {
+      return [];
+    }
+    const normalizedInput = filterValue.toLowerCase();
+    const matching = stations.filter((st) => 
+      st.name.toLowerCase().includes(normalizedInput)
+    );
+    return matching.length <= 5 ? matching : [];
+  };
+
   const handleSearch = useCallback((mode, value) => {
     const normalizedValue = value.trim();
 
     setFilterValue('');
     setSearchError('');
     setIsEditingFilterValue(false);
-    if (mode !== 'id-tren') return;
+    
+    if (mode === 'id-tren') {
+      const train = trains.find(
+        (currentTrain) => currentTrain.id === normalizedValue || currentTrain.train?.id === normalizedValue
+      );
 
-    const train = trains.find(
-      (currentTrain) => currentTrain.id === normalizedValue || currentTrain.train?.id === normalizedValue
-    );
+      if (train) {
+        setSelectedTrain(train);
+        return;
+      }
 
-    if (train) {
-      setSelectedTrain(train);
-      return;
+      setSelectedTrain(null);
+      setSearchError(`Tren con ID "${normalizedValue}" no encontrado`);
+    } else if (mode === 'nombre-estacion') {
+      const station = stations.find(
+        (st) => st.name.toLowerCase().includes(normalizedValue.toLowerCase())
+      );
+
+      if (station) {
+        setZoomTarget({ lat: station.latitude, lng: station.longitude });
+        return;
+      }
+
+      setSearchError(`Estación "${normalizedValue}" no encontrada`);
     }
-
-    setSelectedTrain(null);
-    setSearchError(`Tren con ID "${normalizedValue}" no encontrado`);
-  }, [trains]);
+  }, [trains, stations]);
 
   const handleTrainSelect = useCallback((train) => {
     if (!train) return;
@@ -78,6 +102,7 @@ const Home = () => {
         onSearch={handleSearch}
         searchError={isEditingFilterValue ? '' : searchError}
         selectedTrainText={selectedTrain ? 'Tren seleccionado' : ''}
+        filterOptions={getFilterOptions()}
       />
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <MapView
@@ -87,6 +112,8 @@ const Home = () => {
           selectedTrain={selectedTrain}
           onCloseTrainCard={handleTrainDeselect}
           getStationNameById={getStationNameById}
+          zoomTarget={zoomTarget}
+          onZoomComplete={() => setZoomTarget(null)}
         />
       </div>
     </div>
