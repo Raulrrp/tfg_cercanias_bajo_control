@@ -1,3 +1,5 @@
+// loads periodcally and coordinatedly trains and updates
+
 import { useEffect, useRef, useState } from 'react';
 import { fetchTrains } from '../services/train-service.js';
 import { fetchUpdates } from '../services/update-service.js';
