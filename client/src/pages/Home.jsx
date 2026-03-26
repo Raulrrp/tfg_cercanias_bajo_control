@@ -15,7 +15,7 @@ const Home = () => {
   const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState(null);
   const [zoomTarget, setZoomTarget] = useState(null);
-  const { getStationNameById, stations } = useStations();
+  const { getStationNameById, getStationByName, stations } = useStations();
   const { trains, updates, error: trainError } = useRealtimeSnapshot();
 
   const handleFilterModeChange = (newMode) => {
@@ -44,6 +44,7 @@ const Home = () => {
     return matching.length <= 5 ? matching : [];
   };
 
+  
   const handleSearch = useCallback((mode, value) => {
     const normalizedValue = value.trim();
 
@@ -53,7 +54,8 @@ const Home = () => {
     
     if (mode === 'id-tren') {
       const train = trains.find(
-        (currentTrain) => currentTrain.id === normalizedValue || currentTrain.train?.id === normalizedValue
+        (currentTrain) => currentTrain.id === normalizedValue 
+                          || currentTrain.train?.id === normalizedValue
       );
 
       if (train) {
@@ -64,9 +66,7 @@ const Home = () => {
       setSelectedTrain(null);
       setSearchError(`Tren con ID "${normalizedValue}" no encontrado`);
     } else if (mode === 'nombre-estacion') {
-      const station = stations.find(
-        (st) => st.name.toLowerCase().includes(normalizedValue.toLowerCase())
-      );
+      const station = getStationByName(normalizedValue);
 
       if (station) {
         setZoomTarget({ lat: station.latitude, lng: station.longitude });
@@ -75,7 +75,7 @@ const Home = () => {
 
       setSearchError(`Estación "${normalizedValue}" no encontrada`);
     }
-  }, [trains, stations]);
+  }, [trains, stations, getStationByName]);
 
   const handleTrainSelect = useCallback((train) => {
     if (!train) return;

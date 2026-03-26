@@ -34,5 +34,10 @@ export const useStations = () => {
     return station?.name ?? null;
   };
 
-  return { stations, error, getStationNameById };
+  const getStationByName = (name) =>{
+    return stations.find((st) => st.name.toLowerCase().includes(name.toLowerCase()));
+  }
+
+  // this defines what is accesible from outside when we call useStations()
+  return { stations, error, getStationNameById, getStationByName };
 };
