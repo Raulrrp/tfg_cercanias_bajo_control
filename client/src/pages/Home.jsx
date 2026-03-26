@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import Topbar from '../components/Topbar';
 import MapView from '../components/MapView';
 import { useStations } from '../hooks/station-hook.js';
+import { useTrainHelpers } from '../hooks/train-hook.js';
 import { useRealtimeSnapshot } from '../hooks/realtime-hook.js';
 
 const Home = () => {
@@ -15,7 +16,8 @@ const Home = () => {
   const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState(null);
   const [zoomTarget, setZoomTarget] = useState(null);
-  const { getStationByName, getStationById, stations } = useStations();
+  const { getStationByName, getStationById, getStationOptionsByName } = useStations();
+  const { getTrainById } = useTrainHelpers();
   const { trains, updates, error: trainError } = useRealtimeSnapshot();
 
   const handleFilterModeChange = (newMode) => {
@@ -37,11 +39,7 @@ const Home = () => {
     if (filterMode !== 'nombre-estacion' || !filterValue.trim()) {
       return [];
     }
-    const normalizedInput = filterValue.toLowerCase();
-    const matching = stations.filter((st) => 
-      st.name.toLowerCase().includes(normalizedInput)
-    );
-    return matching.length <= 5 ? matching : [];
+    return getStationOptionsByName(filterValue);
   };
 
   
@@ -53,10 +51,7 @@ const Home = () => {
     setIsEditingFilterValue(false);
     
     if (mode === 'id-tren') {
-      const train = trains.find(
-        (currentTrain) => currentTrain.id === normalizedValue 
-                          || currentTrain.train?.id === normalizedValue
-      );
+      const train = getTrainById(trains, normalizedValue);
 
       if (train) {
         setSelectedTrain(train);
@@ -75,7 +70,7 @@ const Home = () => {
 
       setSearchError(`Estación "${normalizedValue}" no encontrada`);
     }
-  }, [trains, stations, getStationByName]);
+  }, [trains, getStationByName, getTrainById]);
 
   const handleTrainSelect = useCallback((train) => {
     if (!train) return;
