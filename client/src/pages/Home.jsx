@@ -15,7 +15,7 @@ const Home = () => {
   const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState(null);
   const [zoomTarget, setZoomTarget] = useState(null);
-  const { getStationNameById, getStationByName, stations } = useStations();
+  const { getStationByName, getStationById, stations } = useStations();
   const { trains, updates, error: trainError } = useRealtimeSnapshot();
 
   const handleFilterModeChange = (newMode) => {
@@ -112,7 +112,7 @@ const Home = () => {
           onTrainSelect={handleTrainSelect}
           selectedTrain={selectedTrain}
           onCloseTrainCard={handleTrainDeselect}
-          getStationNameById={getStationNameById}
+          getStationById={getStationById}
           zoomTarget={zoomTarget}
           onZoomComplete={() => setZoomTarget(null)}
         />
