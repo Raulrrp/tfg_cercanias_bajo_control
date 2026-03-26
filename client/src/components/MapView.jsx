@@ -10,7 +10,7 @@ import { useShapes } from '../hooks/shape-hook.js'; // Import the new hook
 import StationMarker from './StationMarker.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
 
-const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
+const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
   const markerRefs = useRef(new Map());
 
@@ -98,7 +98,7 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
           >
             <TrainInfoCard
               train={train}
-              nextStopName={getStationNameById(train.nextStop)}
+              nextStopName={getStationById(train.nextStop)?.name}
               delay={delayByTripId.get(String(train.tripId))}
               onClose={onCloseTrainCard}
               inPopup={true}
@@ -110,7 +110,7 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
   );
 };
 
-const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
+const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   // Initial position centered on Madrid
   const position = [40.4167, -3.7037];
 
@@ -144,7 +144,7 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
           onTrainSelect={onTrainSelect}
           selectedTrain={selectedTrain}
           onCloseTrainCard={onCloseTrainCard}
-          getStationNameById={getStationNameById}
+          getStationById={getStationById}
           zoomTarget={zoomTarget}
           onZoomComplete={onZoomComplete}
         />

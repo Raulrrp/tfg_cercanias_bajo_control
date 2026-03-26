@@ -28,16 +28,14 @@ export const useStations = () => {
     loadStations();
   }, []);
 
-  const getStationNameById = (stationId) => {
-    if (!stationId) return null;
-    const station = stations.find((st) => st.id == stationId);
-    return station?.name ?? null;
-  };
-
   const getStationByName = (name) =>{
     return stations.find((st) => st.name.toLowerCase().includes(name.toLowerCase()));
   }
 
+  const getStationById = (id) => {
+    return stations.find((st) => st.id == id);
+  }
+
   // this defines what is accesible from outside when we call useStations()
-  return { stations, error, getStationNameById, getStationByName };
+  return { stations, error, getStationByName, getStationById };
 };
