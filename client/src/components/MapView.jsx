@@ -14,7 +14,7 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
   const map = useMap();
   const markerRefs = useRef(new Map());
 
-  // Follow the selected train using its latest coordinates from the live train list.
+  // Follow the selected train
   useEffect(() => {
     if (!selectedTrain) return;
 
