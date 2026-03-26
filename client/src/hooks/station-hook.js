@@ -30,12 +30,31 @@ export const useStations = () => {
 
   const getStationByName = (name) =>{
     return stations.find((st) => st.name.toLowerCase().includes(name.toLowerCase()));
-  }
+  };
+
+  const getStationOptionsByName = (name, maxResults = 5) => {
+    if (!name?.trim()) {
+      return [];
+    }
+
+    const normalizedInput = name.toLowerCase();
+    const matching = stations.filter((st) =>
+      st.name.toLowerCase().includes(normalizedInput)
+    );
+
+    return matching.length <= maxResults ? matching : [];
+  };
 
   const getStationById = (id) => {
     return stations.find((st) => st.id == id);
-  }
+  };
 
   // this defines what is accesible from outside when we call useStations()
-  return { stations, error, getStationByName, getStationById };
+  return {
+    stations,
+    error,
+    getStationByName,
+    getStationOptionsByName,
+    getStationById
+  };
 };
