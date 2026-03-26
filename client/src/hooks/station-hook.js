@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { fetchStations } from '../services/station-service.js';
 
+// when called, states and useEffect are registered
+// after rendering the component, useEffect will be executed as a callback
+
+// as there is a void array in useEffect(function, array), this function
+// will only be executed after the first render.
+
+// Using useEffect callbacks is the  standard way to fetch info, so that
+// you can control when the fetch is executed
 export const useStations = () => {
   const [stations, setStations] = useState([]);
   const [error, setError] = useState(null);

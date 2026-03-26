@@ -1,3 +1,5 @@
+// renders MapView and MapComntet
+
 import { MapContainer, TileLayer, Polyline, ZoomControl, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef } from 'react';
@@ -109,6 +111,7 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
 };
 
 const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationNameById, zoomTarget, onZoomComplete }) => {
+  // Initial position centered on Madrid
   const position = [40.4167, -3.7037];
 
   const { stations, error: stationError } = useStations();
