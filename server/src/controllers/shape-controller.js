@@ -9,3 +9,13 @@ export const getShapes = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getRouteShapes = async (req, res) => {
+  try {
+    const routeShapes = await ShapeService.getRouteShapes();
+    res.json(routeShapes);
+  } catch (error) {
+    console.error('Error fetching route-shapes:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
