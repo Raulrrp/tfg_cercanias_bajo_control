@@ -6,9 +6,16 @@ import { useEffect, useMemo, useRef } from 'react';
 
 // hooks & components
 import { useStations } from '../hooks/station-hook.js';
-import { useShapes } from '../hooks/shape-hook.js'; // Import the new hook
+import { useRouteShapes } from '../hooks/route-shapes-hook.js';
 import StationMarker from './StationMarker.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
+
+const resolveRouteColor = (rawColor) => {
+  const normalized = String(rawColor ?? '').trim();
+  if (/^[0-9a-fA-F]{6}$/.test(normalized)) return `#${normalized}`;
+  if (/^#[0-9a-fA-F]{6}$/.test(normalized)) return normalized;
+  return '#ff4d4d';
+};
 
 const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
@@ -49,18 +56,22 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
       <ZoomControl position="topright" />
 
       {/* 1. Render Train Lines (Shapes) */}
-      {shapes.map(shape => {
-        const polylinePositions = shape.shapePoints.map(p => [
+      {shapes.map(routeShapeEntry => {
+        const polylinePositions = routeShapeEntry.shape.shapePoints.map(p => [
           p.latitude, 
           p.longitude
         ]);
 
         return (
           <Polyline 
-            key={shape.id} 
+            key={`${routeShapeEntry.routeId}-${routeShapeEntry.shape.id}`} 
             positions={polylinePositions} 
-            pathOptions={{ color: '#ff4d4d', weight: 3, opacity: 0.7 }} 
-          />
+            pathOptions={{ color: resolveRouteColor(routeShapeEntry.routeColor), weight: 3, opacity: 0.8 }}
+          >
+            <Popup>
+              <strong>Ruta:</strong> {routeShapeEntry.routeId}
+            </Popup>
+          </Polyline>
         );
       })}
 
@@ -115,7 +126,7 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
   const position = [40.4167, -3.7037];
 
   const { stations, error: stationError } = useStations();
-  const { shapes, error: shapeError } = useShapes(); // Load the shapes
+  const { shapes, error: routeShapesError } = useRouteShapes();
 
   const delayByTripId = useMemo(() => {
     const map = new Map();
@@ -127,8 +138,8 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
 
   return (
     <>
-      {(stationError || shapeError || trainError) && (
-        <div className="map-error">{stationError || shapeError || trainError}</div>
+      {(stationError || routeShapesError || trainError) && (
+        <div className="map-error">{stationError || routeShapesError || trainError}</div>
       )}
       <MapContainer 
         center={position} 
