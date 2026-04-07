@@ -26,7 +26,7 @@ export const fetchUpdates = async () => {
                     scheduledState: tripUpdate.trip.scheduleRelationship,
                     scheduledTime: validStop.arrival.time,
                     delay: tripUpdate.delay,
-                    nextStopId: validStop.stopId
+                    nextStationId: validStop.stopId
                 });
             })
             .filter(u => u !== null); // Now the nulls are actually removed
