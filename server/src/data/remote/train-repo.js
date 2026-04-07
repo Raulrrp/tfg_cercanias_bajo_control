@@ -35,7 +35,7 @@ export const fetchTrains = async () => {
           longitude: v.position.longitude,
           status: v.currentStatus,
           timestamp: v.timestamp,
-          nextStop: v.stopId
+          nextStationId: v.stopId
         });
       });
 

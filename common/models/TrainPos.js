@@ -1,6 +1,6 @@
 import {Train} from "./Train.js";
 export class TrainPos {
-  constructor({ id, train, tripId, latitude, longitude, status, timestamp, nextStop}) {
+  constructor({ id, train, tripId, latitude, longitude, status, timestamp, nextStationId}) {
     this.id = id;
     this.train = train;
     this.tripId = tripId;
@@ -8,7 +8,7 @@ export class TrainPos {
     this.longitude = longitude;
     this.status = status;
     this.timestamp = timestamp;
-    this.nextStop = nextStop;
+    this.nextStationId = nextStationId;
   }
   static fromJson(json){
     return new TrainPos({
@@ -19,7 +19,7 @@ export class TrainPos {
       longitude: json.longitude,
       status: json.status,
       timestamp: json.timestamp,
-      nextStop: json.nextStop
+      nextStationId: json.nextStationId
       });
     }
   toJson(){
@@ -31,7 +31,7 @@ export class TrainPos {
       longitude: this.longitude,
       status: this.status,
       timestamp: this.timestamp,
-      nextStop: this.nextStop
+      nextStationId: this.nextStationId
     };
   }
 }
