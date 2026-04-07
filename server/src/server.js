@@ -17,6 +17,8 @@ import trainRoutes from './routes/train-routes.js';
 import updateRoutes from './routes/update-routes.js';
 // tripRoutes import
 import tripRoutes from './routes/trip-routes.js';
+// routeShapesRoutes import
+import routeShapesRoutes from './routes/route-shapes-routes.js';
 
 // Logic and Controller imports for real-time tracking
 import * as TrainService from './services/train-service.js';
@@ -45,6 +47,8 @@ app.use(express.json());
 app.use('/api/stations', stationRoutes);
 // every query with /api/shapes will be handled by shapeRoutes.
 app.use('/api/shapes', shapeRoutes);
+// dedicated endpoint for route visualization payload.
+app.use('/api/shape-routes', routeShapesRoutes);
 // every query with /api/routes will be handled by routeRoutes.
 app.use('/api/routes', routeRoutes);
 // every query with /api/trains will be handled by trainRoutes.
