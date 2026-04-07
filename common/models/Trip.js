@@ -5,6 +5,7 @@ export class Trip{
         this.id = id;
         this.headsign = headsign;
         this.wheelchairAccessible = wheelchairAccessible;
+        //check
         this.blockId = blockId;
         this.shapeId = shapeId;
     }
