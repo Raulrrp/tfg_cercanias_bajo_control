@@ -1,3 +1,4 @@
+// debugging purposes
 import express from 'express';
 import { getTrips } from '../controllers/trip-controller.js';
 
