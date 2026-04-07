@@ -1,6 +1,6 @@
 // renders MapView and MapComntet
 
-import { MapContainer, TileLayer, Polyline, ZoomControl, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, ZoomControl, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef } from 'react';
 
@@ -8,14 +8,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useStations } from '../hooks/station-hook.js';
 import { useRouteShapes } from '../hooks/route-shapes-hook.js';
 import StationMarker from './StationMarker.jsx';
+import RoutePolylinesLayer from './RoutePolylinesLayer.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
-
-const resolveRouteColor = (rawColor) => {
-  const normalized = String(rawColor ?? '').trim();
-  if (/^[0-9a-fA-F]{6}$/.test(normalized)) return `#${normalized}`;
-  if (/^#[0-9a-fA-F]{6}$/.test(normalized)) return normalized;
-  return '#ff4d4d';
-};
 
 const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
@@ -56,24 +50,7 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
       <ZoomControl position="topright" />
 
       {/* 1. Render Train Lines (Shapes) */}
-      {shapes.map(routeShapeEntry => {
-        const polylinePositions = routeShapeEntry.shape.shapePoints.map(p => [
-          p.latitude, 
-          p.longitude
-        ]);
-
-        return (
-          <Polyline 
-            key={`${routeShapeEntry.routeId}-${routeShapeEntry.shape.id}`} 
-            positions={polylinePositions} 
-            pathOptions={{ color: resolveRouteColor(routeShapeEntry.routeColor), weight: 3, opacity: 0.8 }}
-          >
-            <Popup>
-              <strong>Ruta:</strong> {routeShapeEntry.routeId}
-            </Popup>
-          </Polyline>
-        );
-      })}
+      <RoutePolylinesLayer shapes={shapes} />
 
       {/* 2. Render Station Markers */}
       {stations.map(st => (
