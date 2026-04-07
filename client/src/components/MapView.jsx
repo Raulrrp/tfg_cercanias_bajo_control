@@ -98,7 +98,7 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
           >
             <TrainInfoCard
               train={train}
-              nextStopName={getStationById(train.nextStop)?.name}
+              nextStopName={getStationById(train.nextStationId)?.name}
               delay={delayByTripId.get(String(train.tripId))}
               onClose={onCloseTrainCard}
               inPopup={true}

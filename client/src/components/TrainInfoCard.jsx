@@ -58,8 +58,8 @@ const TrainInfoCard = ({ train, nextStopName, delay, onClose, inPopup = false })
       <div style={rowStyle}>
         <strong>ID:</strong> {train.train?.id ?? train.id ?? 'No disponible'}
       </div>
-      <div style={rowStyle}>
-        <strong>Siguiente parada:</strong> {nextStopName ?? train.nextStop ?? 'No disponible'}
+         <div style={rowStyle}>
+           <strong>Siguiente parada:</strong> {nextStopName ?? train.nextStationId ?? 'No disponible'}
       </div>
       <div style={rowStyle}>
         <strong>Retraso:</strong> {formatDelay(delay)}
