@@ -34,5 +34,15 @@ export const useRouteShapes = () => {
     [routeShapes]
   );
 
-  return { routeShapes, shapes, error, loading };
+  getRouteShapeById = (routeId) => {
+    return routeShapes.find(
+      (routeShape) => routeShape.routeId === routeId
+    );
+  }
+
+  return {
+    routeShapes,
+    shapes,
+    error,
+    loading };
 };
