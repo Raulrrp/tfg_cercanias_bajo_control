@@ -10,7 +10,7 @@ const Home = () => {
   // setFilterMode is the function to update the state value
   // when a setter is called, the variable changes and 
   // the component re-renders
-  const [filterMode, setFilterMode] = useState('zona-urbana');
+  const [filterMode, setFilterMode] = useState('urban-zone');
   const [filterValue, setFilterValue] = useState('');
   const [searchError, setSearchError] = useState('');
   const [isEditingFilterValue, setIsEditingFilterValue] = useState(false);
@@ -36,13 +36,13 @@ const Home = () => {
   };
 
   const getFilterOptions = () => {
-    if (filterMode !== 'nombre-estacion' || !filterValue.trim()) {
+    if (filterMode !== 'station-name' || !filterValue.trim()) {
       return [];
     }
     return getStationOptionsByName(filterValue);
   };
 
-  
+  // handles search based on filter mode
   const handleSearch = useCallback((mode, value) => {
     const normalizedValue = value.trim();
 
@@ -50,7 +50,7 @@ const Home = () => {
     setSearchError('');
     setIsEditingFilterValue(false);
     
-    if (mode === 'id-tren') {
+    if (mode === 'train-id') {
       const train = getTrainById(trains, normalizedValue);
 
       if (train) {
@@ -60,7 +60,7 @@ const Home = () => {
 
       setSelectedTrain(null);
       setSearchError(`Tren con ID "${normalizedValue}" no encontrado`);
-    } else if (mode === 'nombre-estacion') {
+    } else if (mode === 'station-name') {
       const station = getStationByName(normalizedValue);
 
       if (station) {
@@ -69,7 +69,13 @@ const Home = () => {
       }
 
       setSearchError(`Estación "${normalizedValue}" no encontrada`);
+    } else if (mode === 'urban-zone') {
+
+    } else if (mode === 'route') {
+      
     }
+
+
   }, [trains, getStationByName, getTrainById]);
 
   const handleTrainSelect = useCallback((train) => {

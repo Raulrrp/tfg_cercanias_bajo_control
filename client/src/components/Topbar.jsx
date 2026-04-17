@@ -37,7 +37,7 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
       }}
     >
       <h2 style={{ margin: 0, fontSize: '1.1rem', letterSpacing: '0.02em' }}>
-        Cercanias Bajo Control
+        Cercanías Bajo Control
       </h2>
 
       <div
@@ -66,10 +66,10 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
             fontSize: '0.92rem'
           }}
         >
-          <option value="zona-urbana">Zona urbana</option>
-          <option value="linea">Linea</option>
-          <option value="id-tren">ID de tren</option>
-          <option value="nombre-estacion">Nombre de estacion</option>
+          <option value="urban-zone">Zona urbana</option>
+          <option value="route">Línea</option>
+          <option value="train-id">ID de tren</option>
+          <option value="station-name">Nombre de estación</option>
         </select>
 
         <div
