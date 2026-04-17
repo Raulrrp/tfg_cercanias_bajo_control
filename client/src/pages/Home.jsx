@@ -4,6 +4,7 @@ import MapView from '../components/MapView';
 import { useStations } from '../hooks/station-hook.js';
 import { useTrainHelpers } from '../hooks/train-hook.js';
 import { useRealtimeSnapshot } from '../hooks/realtime-hook.js';
+import { useRouteShapes } from '../hooks/route-shapes-hook.js';
 
 const Home = () => {
   // filterMode is the current state value
@@ -19,6 +20,7 @@ const Home = () => {
   const { getStationByName, getStationById, getStationOptionsByName } = useStations();
   const { getTrainById } = useTrainHelpers();
   const { trains, updates, error: trainError } = useRealtimeSnapshot();
+  const { getRouteShapeById } = useRouteShapes();
 
   const handleFilterModeChange = (newMode) => {
     setFilterMode(newMode);
@@ -72,11 +74,27 @@ const Home = () => {
     } else if (mode === 'urban-zone') {
 
     } else if (mode === 'route') {
+      setSelectedTrain(null);
+      const routeShape = getRouteShapeById(normalizedValue);
       
+      if (routeShape && routeShape.minLatitude
+        && routeShape.maxLatitude && routeShape.minLongitude
+        && routeShape.maxLongitude
+      ){
+        setZoomTarget({
+          bounds: [
+            [routeShape.minLatitude, routeShape.minLongitude],
+            [routeShape.maxLatitude, routeShape.maxLongitude]
+          ]
+        });
+        return;
+      }
+
+      setSearchError(`Línea "${normalizedValue}" no encontrada`);
     }
 
 
-  }, [trains, getStationByName, getTrainById]);
+  }, [trains, getStationByName, getTrainById, getRouteShapeById]);
 
   const handleTrainSelect = useCallback((train) => {
     if (!train) return;

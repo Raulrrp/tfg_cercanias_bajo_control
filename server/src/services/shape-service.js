@@ -5,11 +5,13 @@ import { RouteShapes } from '@tfg_cercanias_bajo_control/common/models/RouteShap
 
 let cachedRouteShapes = null;
 
-// calculates the centroid of a route
-const getRouteCentroid = (shapes) => {
-  let latSum = 0;
-  let lonSum = 0;
-  let totalPoints = 0;
+// calculates the bounding box of a route
+const getRouteBounds = (shapes) => {
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+  let hasPoints = false;
 
   shapes.forEach((shape) => {
     (shape.shapePoints || []).forEach((point) => {
@@ -17,19 +19,23 @@ const getRouteCentroid = (shapes) => {
         return;
       }
 
-      latSum += point.latitude;
-      lonSum += point.longitude;
-      totalPoints += 1;
+      hasPoints = true;
+      minLat = Math.min(minLat, point.latitude);
+      maxLat = Math.max(maxLat, point.latitude);
+      minLng = Math.min(minLng, point.longitude);
+      maxLng = Math.max(maxLng, point.longitude);
     });
   });
 
-  if (totalPoints === 0) {
+  if (!hasPoints) {
     return null;
   }
 
   return {
-    centerLatitude: latSum / totalPoints,
-    centerLongitude: lonSum / totalPoints,
+    minLatitude: minLat,
+    maxLatitude: maxLat,
+    minLongitude: minLng,
+    maxLongitude: maxLng,
   };
 };
 
@@ -86,14 +92,16 @@ export const getRouteShapes = async () => {
         .filter(Boolean)
         .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
-      const center = getRouteCentroid(routeShapes);
+      const bounds = getRouteBounds(routeShapes);
 
       return new RouteShapes({
         routeId,
         routeColor: lineColorByLineId.get(routeId) ?? null,
         shapes: routeShapes,
-        centerLatitude: center?.centerLatitude ?? null,
-        centerLongitude: center?.centerLongitude ?? null,
+        minLatitude: bounds?.minLatitude ?? null,
+        maxLatitude: bounds?.maxLatitude ?? null,
+        minLongitude: bounds?.minLongitude ?? null,
+        maxLongitude: bounds?.maxLongitude ?? null,
       });
     })
     .sort((a, b) => a.routeId.localeCompare(b.routeId))

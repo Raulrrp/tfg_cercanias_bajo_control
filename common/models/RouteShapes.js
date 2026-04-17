@@ -1,12 +1,14 @@
 import { Shape } from '@tfg_cercanias_bajo_control/common/models/Shape.js';
 
 export class RouteShapes {
-  constructor({ routeId, routeColor, shapes, centerLatitude, centerLongitude }) {
+  constructor({ routeId, routeColor, shapes, minLatitude, maxLatitude, minLongitude, maxLongitude }) {
     this.routeId = routeId;
     this.routeColor = routeColor ?? null;
     this.shapes = Array.isArray(shapes) ? shapes : [];
-    this.centerLatitude = centerLatitude ?? null;
-    this.centerLongitude = centerLongitude ?? null;
+    this.minLatitude = minLatitude ?? null;
+    this.maxLatitude = maxLatitude ?? null;
+    this.minLongitude = minLongitude ?? null;
+    this.maxLongitude = maxLongitude ?? null;
   }
 
   static fromJson(json) {
@@ -14,8 +16,10 @@ export class RouteShapes {
       routeId: json.routeId,
       routeColor: json.routeColor,
       shapes: (json.shapes || []).map((shapeJson) => Shape.fromJson(shapeJson)),
-      centerLatitude: json.centerLatitude,
-      centerLongitude: json.centerLongitude,
+      minLatitude: json.minLatitude,
+      maxLatitude: json.maxLatitude,
+      minLongitude: json.minLongitude,
+      maxLongitude: json.maxLongitude,
     });
   }
 
@@ -24,8 +28,10 @@ export class RouteShapes {
       routeId: this.routeId,
       routeColor: this.routeColor,
       shapes: this.shapes.map((shape) => shape.toJson()),
-      centerLatitude: this.centerLatitude,
-      centerLongitude: this.centerLongitude,
+      minLatitude: this.minLatitude,
+      maxLatitude: this.maxLatitude,
+      minLongitude: this.minLongitude,
+      maxLongitude: this.maxLongitude,
     };
   }
 }

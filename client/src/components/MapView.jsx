@@ -37,7 +37,13 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
   useEffect(() => {
     if (!zoomTarget) return;
 
-    map.setView([zoomTarget.lat, zoomTarget.lng], 15);
+    if (zoomTarget.bounds) {
+      // For route bounds, use fitBounds
+      map.fitBounds(zoomTarget.bounds, { padding: [50, 50] });
+    } else if (zoomTarget.lat && zoomTarget.lng) {
+      // For single point, use setView
+      map.setView([zoomTarget.lat, zoomTarget.lng], 15);
+    }
     onZoomComplete();
   }, [zoomTarget, map, onZoomComplete]);
 
