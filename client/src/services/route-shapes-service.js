@@ -2,7 +2,7 @@ import { RouteShapes } from '@tfg_cercanias_bajo_control/common/models/RouteShap
 
 export const fetchRouteShapes = async () => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/shape-routes`);
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/route-shapes`);
     if (!response.ok) throw new Error('Failed to fetch route shapes');
 
     const data = await response.json();

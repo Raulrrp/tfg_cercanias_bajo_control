@@ -7,18 +7,14 @@ import { Server } from 'socket.io';   // WebSocket library
 
 // stationRoutes import
 import stationRoutes from './routes/station-routes.js';
-// shapeRoutes import
-import shapeRoutes from './routes/shape-routes.js';
-// routeRoutes import
-import routeRoutes from './routes/route-routes.js';
+// routeShapesRoutes import
+import routeShapesRoutes from './routes/route-shapes-routes.js';
 // trainRoutes import
 import trainRoutes from './routes/train-routes.js';
 // updateRoutes import
 import updateRoutes from './routes/update-routes.js';
 // tripRoutes import
 import tripRoutes from './routes/trip-routes.js';
-// routeShapesRoutes import
-import routeShapesRoutes from './routes/route-shapes-routes.js';
 
 // Logic and Controller imports for real-time tracking
 import * as TrainService from './services/train-service.js';
@@ -45,12 +41,8 @@ app.use(express.json());
 
 // every query with /api/stations will be handled by stationRoutes.
 app.use('/api/stations', stationRoutes);
-// every query with /api/shapes will be handled by shapeRoutes.
-app.use('/api/shapes', shapeRoutes);
-// dedicated endpoint for route visualization payload.
-app.use('/api/routes-shapes', routeShapesRoutes);
-// every query with /api/routes will be handled by routeRoutes.
-app.use('/api/routes', routeRoutes);
+// every query with /api/route-shapes will be handled by routeShapesRoutes.
+app.use('/api/route-shapes', routeShapesRoutes);
 // every query with /api/trains will be handled by trainRoutes.
 app.use('/api/trains', trainRoutes);
 // every query with /api/updates will be handled by updateRoutes.
