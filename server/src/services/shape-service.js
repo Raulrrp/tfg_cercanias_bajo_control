@@ -51,20 +51,12 @@ export const getRouteShapes = async () => {
 
   const [shapes, trips, routes] = await Promise.all([fetchShapes(), fetchTrips(), fetchRoutes()]);
 
-  const lineIdByRouteId = new Map(
-    routes.map((route) => {
-      const rawRouteId = String(route.id ?? '').trim();
-      const lineId = String(route.shortName ?? route.id ?? '').trim() || rawRouteId;
-      return [rawRouteId, lineId];
-    })
-  );
-
-  const lineColorByLineId = new Map();
+  const routeColorByRouteId = new Map();
   routes.forEach((route) => {
-    const lineId = String(route.shortName ?? route.id ?? '').trim();
+    const routeId = String(route.id ?? '').trim();
     const color = String(route.color ?? '').trim();
-    if (!lineId || !color || lineColorByLineId.has(lineId)) return;
-    lineColorByLineId.set(lineId, color);
+    if (!routeId || !color || routeColorByRouteId.has(routeId)) return;
+    routeColorByRouteId.set(routeId, color);
   });
 
   const shapeById = new Map(
@@ -77,12 +69,10 @@ export const getRouteShapes = async () => {
     const shapeId = String(trip.shapeId ?? '').trim();
     if (!rawRouteId || !shapeId) return;
 
-    const routeId = lineIdByRouteId.get(rawRouteId) ?? rawRouteId;
-
-    if (!routeToShapeIds.has(routeId)) {
-      routeToShapeIds.set(routeId, new Set());
+    if (!routeToShapeIds.has(rawRouteId)) {
+      routeToShapeIds.set(rawRouteId, new Set());
     }
-    routeToShapeIds.get(routeId).add(shapeId);
+    routeToShapeIds.get(rawRouteId).add(shapeId);
   });
 
   const result = Array.from(routeToShapeIds.entries())
@@ -96,7 +86,7 @@ export const getRouteShapes = async () => {
 
       return new RouteShapes({
         routeId,
-        routeColor: lineColorByLineId.get(routeId) ?? null,
+        routeColor: routeColorByRouteId.get(routeId) ?? null,
         shapes: routeShapes,
         minLatitude: bounds?.minLatitude ?? null,
         maxLatitude: bounds?.maxLatitude ?? null,

@@ -2,7 +2,7 @@ import { Polyline, Popup } from 'react-leaflet';
 import 'leaflet-polylineoffset';
 import { useMemo } from 'react';
 
-const OVERLAP_OFFSET_PX = 8;
+const OVERLAP_OFFSET_PX = 20;
 
 const resolveRouteColor = (rawColor) => {
   const normalized = String(rawColor ?? '').trim();
