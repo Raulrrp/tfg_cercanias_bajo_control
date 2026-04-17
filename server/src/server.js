@@ -48,7 +48,7 @@ app.use('/api/stations', stationRoutes);
 // every query with /api/shapes will be handled by shapeRoutes.
 app.use('/api/shapes', shapeRoutes);
 // dedicated endpoint for route visualization payload.
-app.use('/api/shape-routes', routeShapesRoutes);
+app.use('/api/routes-shapes', routeShapesRoutes);
 // every query with /api/routes will be handled by routeRoutes.
 app.use('/api/routes', routeRoutes);
 // every query with /api/trains will be handled by trainRoutes.
