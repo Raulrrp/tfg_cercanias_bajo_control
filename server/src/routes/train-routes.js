@@ -1,8 +1,8 @@
 import express from 'express';
-import { getLiveTrains } from '../controllers/train-controller.js';
+import { getTrains } from '../controllers/train-controller.js';
 
 const router = express.Router();
 
-router.get('/', getLiveTrains);
+router.get('/', getTrains);
 
 export default router;
