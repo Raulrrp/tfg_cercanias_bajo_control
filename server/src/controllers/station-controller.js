@@ -2,11 +2,11 @@ import * as StationService from '../services/station-service.js';
 
 /**
  * GET /api/stations
- * Sends filtered station data to the client
+ * Sends station data to the client
  */
-export const getAllStations = async (req, res) => {
+export const getStations = async (req, res) => {
   try {
-    const stations = await StationService.getCercaniasStations();
+    const stations = await StationService.getStations();
     
     // Return the domain objects as JSON array
     res.status(200).json(stations);

@@ -1,6 +1,6 @@
 import { fetchStations } from '../data/files/station-repo.js';
 
-export const getCercaniasStations = async () => {
+export const getStations = async () => {
   const data = await fetchStations();
   return data;
 };
