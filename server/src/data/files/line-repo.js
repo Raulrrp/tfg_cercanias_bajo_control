@@ -11,6 +11,29 @@ const SHAPES_FILE_PATH = path.join(process.cwd(), 'data_files', 'shapes', 'shape
 
 let cachedLines = null;
 
+const URBAN_ZONE_BY_SHAPE_PREFIX = {
+  '70': 'Zaragoza',
+  '62': 'Cantabria',
+  '61': 'San Sebastian',
+  '60': 'Bilbao',
+  '51': 'Cataluna',
+  '41': 'Alicante Murcia',
+  '40': 'Valencia',
+  '32': 'Malaga',
+  '31': 'Cadiz',
+  '30': 'Sevilla',
+  '20': 'Asturias',
+  '10': 'Madrid',
+};
+
+const getUrbanZoneFromShapeId = (shapeId) => {
+  const normalizedShapeId = String(shapeId ?? '').trim();
+  if (!normalizedShapeId) return null;
+
+  const prefix = normalizedShapeId.slice(0, 2);
+  return URBAN_ZONE_BY_SHAPE_PREFIX[prefix] ?? null;
+};
+
 const getLineBounds = (shape) => {
   if (!shape || !Array.isArray(shape.shapePoints) || shape.shapePoints.length === 0) {
     return null;
@@ -133,8 +156,9 @@ export const fetchLines = async () => {
 
     const lines = Array.from(lineKeys)
       .map((lineKey) => {
-        const [name, urbanZone] = lineKey.split('::');
-        const shape = shapeById.get(urbanZone) ?? null;
+        const [name, shapeId] = lineKey.split('::');
+        const shape = shapeById.get(shapeId) ?? null;
+        const urbanZone = getUrbanZoneFromShapeId(shapeId) ?? shapeId;
         const bounds = getLineBounds(shape);
 
         return new Line({
