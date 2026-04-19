@@ -1,6 +1,6 @@
 import * as TrainService from '../services/train-service.js';
 
-export const getLiveTrains = async (req, res) => {
+export const getTrains = async (req, res) => {
   try {
     const trains = await TrainService.getLiveTrains();
     // Convert to plain JSON for the HTTP response
