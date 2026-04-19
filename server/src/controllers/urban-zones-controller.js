@@ -14,19 +14,3 @@ export const getUrbanZones = async (req, res) => {
     });
   }
 };
-
-/**
- * GET /api/urban-zones/:id
- * Sends a specific urban zone by id
- */
-export const getUrbanZoneById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const zone = await UrbanZonesService.getUrbanZoneById(id);
-    res.status(200).json(zone);
-  } catch (error) {
-    res.status(404).json({ 
-      message: error.message 
-    });
-  }
-};
