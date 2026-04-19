@@ -5,6 +5,7 @@ import { useStations } from '../hooks/station-hook.js';
 import { useTrainHelpers } from '../hooks/train-hook.js';
 import { useRealtimeSnapshot } from '../hooks/realtime-hook.js';
 import { useLines } from '../hooks/line-hook.js';
+import { useUrbanZones } from '../hooks/urban-zones-hook.js';
 
 const Home = () => {
   // filterMode is the current state value
@@ -21,6 +22,7 @@ const Home = () => {
   const { getTrainById } = useTrainHelpers();
   const { trains, updates, error: trainError } = useRealtimeSnapshot();
   const { getLineByNameAndZone } = useLines();
+  const { zones, getUrbanZoneByName } = useUrbanZones();
 
   const handleFilterModeChange = (newMode) => {
     setFilterMode(newMode);
@@ -72,7 +74,20 @@ const Home = () => {
 
       setSearchError(`Estación "${normalizedValue}" no encontrada`);
     } else if (mode === 'urban-zone') {
+      const zone = getUrbanZoneByName(normalizedValue);
 
+      if (zone) {
+        const centerLat = zone.center_lat ?? zone.centerLat;
+        const centerLng = zone.center_lon ?? zone.centerLon;
+
+        if (Number.isFinite(centerLat) && Number.isFinite(centerLng)) {
+          setZoomTarget({ lat: centerLat, lng: centerLng, zoom: 9 });
+          return;
+        }
+        return;
+      }
+
+      setSearchError(`Zona urbana "${normalizedValue}" no encontrada`);
     } else if (mode === 'line') {
       setSelectedTrain(null);
 
@@ -97,7 +112,7 @@ const Home = () => {
     }
 
 
-  }, [trains, getStationByName, getTrainById, getLineByNameAndZone]);
+  }, [trains, getStationByName, getTrainById, getLineByNameAndZone, getUrbanZoneByName]);
 
   const handleTrainSelect = useCallback((train) => {
     if (!train) return;
@@ -125,6 +140,7 @@ const Home = () => {
         searchError={isEditingFilterValue ? '' : searchError}
         selectedTrainText={selectedTrain ? 'Tren seleccionado' : ''}
         filterOptions={getFilterOptions()}
+        urbanZones={zones}
       />
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <MapView

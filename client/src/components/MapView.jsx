@@ -40,9 +40,10 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
     if (zoomTarget.bounds) {
       // For line bounds, use fitBounds
       map.fitBounds(zoomTarget.bounds, { padding: [50, 50] });
-    } else if (zoomTarget.lat && zoomTarget.lng) {
+    } else if (Number.isFinite(zoomTarget.lat) && Number.isFinite(zoomTarget.lng)) {
       // For single point, use setView
-      map.setView([zoomTarget.lat, zoomTarget.lng], 15);
+      const targetZoom = Number.isFinite(zoomTarget.zoom) ? zoomTarget.zoom : 15;
+      map.setView([zoomTarget.lat, zoomTarget.lng], targetZoom);
     }
     onZoomComplete();
   }, [zoomTarget, map, onZoomComplete]);
