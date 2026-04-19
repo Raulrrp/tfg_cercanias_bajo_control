@@ -13,6 +13,8 @@ import trainRoutes from './routes/train-routes.js';
 import updateRoutes from './routes/update-routes.js';
 // tripRoutes import
 import tripRoutes from './routes/trip-routes.js';
+// lineRoutes import
+import lineRoutes from './routes/line-routes.js';
 
 // Logic and Controller imports for real-time tracking
 import * as TrainService from './services/train-service.js';
@@ -45,6 +47,8 @@ app.use('/api/trains', trainRoutes);
 app.use('/api/updates', updateRoutes);
 // every query with /api/trips will be handled by tripRoutes.
 app.use('/api/trips', tripRoutes);
+// every query with /api/lines will be handled by lineRoutes.
+app.use('/api/lines', lineRoutes);
 
 // test path
 app.get('/', (req, res) => {
