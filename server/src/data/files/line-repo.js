@@ -5,7 +5,6 @@ import { Line } from '@tfg_cercanias_bajo_control/common/models/Line.js';
 import { Shape } from '@tfg_cercanias_bajo_control/common/models/Shape.js';
 import { ShapePoint } from '@tfg_cercanias_bajo_control/common/models/ShapePoint.js';
 
-const TRIPS_FILE_PATH = path.join(process.cwd(), 'data_files', 'trips.txt');
 const ROUTES_FILE_PATH = path.join(process.cwd(), 'data_files', 'routes.txt');
 const SHAPES_FILE_PATH = path.join(process.cwd(), 'data_files', 'shapes', 'shapes.txt');
 
@@ -73,19 +72,10 @@ export const fetchLines = async () => {
   try {
     if (cachedLines) return cachedLines;
 
-    const [tripsContent, routesContent, shapesContent] = await Promise.all([
-      fs.readFile(TRIPS_FILE_PATH, 'utf-8'),
+    const [routesContent, shapesContent] = await Promise.all([
       fs.readFile(ROUTES_FILE_PATH, 'utf-8'),
       fs.readFile(SHAPES_FILE_PATH, 'utf-8'),
     ]);
-
-    const tripsRecords = parse(tripsContent, {
-      delimiter: ',',
-      columns: false,
-      from_line: 2,
-      skip_empty_lines: true,
-      trim: true,
-    });
 
     const routesRecords = parse(routesContent, {
       delimiter: ',',
@@ -103,7 +93,6 @@ export const fetchLines = async () => {
       trim: true,
     });
 
-    const routeShortNameByRouteId = new Map();
     const lineColorByRouteShortName = new Map();
 
     routesRecords.forEach((record) => {
@@ -114,7 +103,6 @@ export const fetchLines = async () => {
 
       if (!rawRouteId) return;
 
-      routeShortNameByRouteId.set(rawRouteId, shortName);
       if (shortName && color && !lineColorByRouteShortName.has(shortName)) {
         lineColorByRouteShortName.set(shortName, color);
       }
@@ -144,21 +132,15 @@ export const fetchLines = async () => {
       shape.shapePoints.sort((a, b) => a.sequence - b.sequence);
     });
 
-    const lineKeys = new Set();
-    tripsRecords.forEach((record) => {
-      const [routeId, , , , , , shapeId] = record;
-      const shortName = routeShortNameByRouteId.get(String(routeId ?? '').trim());
-      const shapeKey = String(shapeId ?? '').trim();
-      if (!shortName || !shapeKey) return;
-
-      lineKeys.add(`${shortName}::${shapeKey}`);
-    });
-
-    const lines = Array.from(lineKeys)
+    const lines = Array.from(shapeById.values())
       .map((lineKey) => {
-        const [name, shapeId] = lineKey.split('::');
-        const shape = shapeById.get(shapeId) ?? null;
-        const urbanZone = getUrbanZoneFromShapeId(shapeId) ?? shapeId;
+        const shapeId = String(lineKey.id ?? '').trim();
+        const [urbanZonePrefix, ...nameParts] = shapeId.split('_');
+        const name = nameParts.join('_').trim();
+        if (!urbanZonePrefix || !name) return null;
+
+        const shape = lineKey;
+        const urbanZone = getUrbanZoneFromShapeId(shapeId) ?? urbanZonePrefix;
         const bounds = getLineBounds(shape);
 
         return new Line({
@@ -172,6 +154,7 @@ export const fetchLines = async () => {
           maxLongitude: bounds?.maxLongitude ?? null,
         });
       })
+      .filter(Boolean)
       .sort((a, b) => {
         const nameCompare = String(a.name).localeCompare(String(b.name));
         if (nameCompare !== 0) return nameCompare;
