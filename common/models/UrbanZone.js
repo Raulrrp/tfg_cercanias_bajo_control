@@ -1,32 +1,26 @@
 export class UrbanZone {
-  constructor({id, name, minLatitude, maxLatitude, minLongitude, maxLongitude }) {
+  constructor({ id, name, centerLat, centerLon }) {
     this.id = id;
     this.name = name;
-    this.minLatitude = minLatitude ?? null;
-    this.maxLatitude = maxLatitude ?? null;
-    this.minLongitude = minLongitude ?? null;
-    this.maxLongitude = maxLongitude ?? null;
+    this.centerLat = centerLat ?? null;
+    this.centerLon = centerLon ?? null;
   }
 
-  static fromJson(json){
+  static fromJson(json) {
     return new UrbanZone({
       id: json.id,
       name: json.name,
-      minLatitude: json.minLatitude,
-      maxLatitude: json.maxLatitude,
-      minLongitude: json.minLongitude,
-      maxLongitude: json.maxLongitude
+      centerLat: json.centerLat ?? json.center_lat,
+      centerLon: json.centerLon ?? json.center_lon
     });
   }
 
   toJson() {
-    return{
-        id: this.id,
-        name: this.name,
-        minLatitude: this.minLatitude,
-        maxLatitude: this.maxLatitude,
-        minLongitude: this.minLongitude,
-        maxLongitude: this.maxLongitude
-    }
+    return {
+      id: this.id,
+      name: this.name,
+      centerLat: this.centerLat,
+      centerLon: this.centerLon
+    };
   }
 }
