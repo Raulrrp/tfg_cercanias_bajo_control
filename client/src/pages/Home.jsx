@@ -4,7 +4,7 @@ import MapView from '../components/MapView';
 import { useStations } from '../hooks/station-hook.js';
 import { useTrainHelpers } from '../hooks/train-hook.js';
 import { useRealtimeSnapshot } from '../hooks/realtime-hook.js';
-import { useRouteShapes } from '../hooks/route-shapes-hook.js';
+import { useLines } from '../hooks/line-hook.js';
 
 const Home = () => {
   // filterMode is the current state value
@@ -20,7 +20,7 @@ const Home = () => {
   const { getStationByName, getStationById, getStationOptionsByName } = useStations();
   const { getTrainById } = useTrainHelpers();
   const { trains, updates, error: trainError } = useRealtimeSnapshot();
-  const { getRouteShapeById } = useRouteShapes();
+  const { getLineByNameAndZone } = useLines();
 
   const handleFilterModeChange = (newMode) => {
     setFilterMode(newMode);
@@ -73,28 +73,31 @@ const Home = () => {
       setSearchError(`Estación "${normalizedValue}" no encontrada`);
     } else if (mode === 'urban-zone') {
 
-    } else if (mode === 'route') {
+    } else if (mode === 'line') {
       setSelectedTrain(null);
-      const routeShape = getRouteShapeById(normalizedValue);
+
+      /* missing urban zone reading
+      const line = getLineByNameAndZone(normalizedValue);
       
-      if (routeShape && routeShape.minLatitude
-        && routeShape.maxLatitude && routeShape.minLongitude
-        && routeShape.maxLongitude
+      if (line && line.minLatitude
+        && line.maxLatitude && line.minLongitude
+        && line.maxLongitude
       ){
         setZoomTarget({
           bounds: [
-            [routeShape.minLatitude, routeShape.minLongitude],
-            [routeShape.maxLatitude, routeShape.maxLongitude]
+            [line.minLatitude, line.minLongitude],
+            [line.maxLatitude, line.maxLongitude]
           ]
         });
         return;
       }
 
       setSearchError(`Línea "${normalizedValue}" no encontrada`);
+      */
     }
 
 
-  }, [trains, getStationByName, getTrainById, getRouteShapeById]);
+  }, [trains, getStationByName, getTrainById, getLineByNameAndZone]);
 
   const handleTrainSelect = useCallback((train) => {
     if (!train) return;

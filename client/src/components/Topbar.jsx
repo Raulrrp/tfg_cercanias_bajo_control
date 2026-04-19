@@ -67,7 +67,7 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
           }}
         >
           <option value="urban-zone">Zona urbana</option>
-          <option value="route">Línea</option>
+          <option value="line">Línea</option>
           <option value="train-id">ID de tren</option>
           <option value="station-name">Nombre de estación</option>
         </select>
