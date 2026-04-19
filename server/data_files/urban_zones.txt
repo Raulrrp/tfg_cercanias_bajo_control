@@ -1,0 +1,13 @@
+urban_zone_id,center
+1,Asturias
+2,Barcelona
+3,Bilbao
+4,Cádiz
+5,Madrid
+6,Málaga
+7,Murcia Alicante
+8,San Sebastián
+9,Santander
+10,Sevilla
+11,Valencia
+12,Zaragoza
