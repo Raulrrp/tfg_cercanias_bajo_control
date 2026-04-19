@@ -1,11 +1,11 @@
-urban_zone_id,center_lat,center_lon
+urban_zone_id,name,center_lat,center_lon
 20,Asturias,43.3326890,-6.0118422
-51,Cataluña,41.5911589,1.5208624
+51,Barcelona,41.5911589,1.5208624
 60,Bilbao,43.2630126,-2.9349852
 31,Cádiz,36.5270612,-6.2885962
 10,Madrid,40.4167754,-3.7037902
 32,Málaga,36.7212610,-4.4212655
-41,Murcia Alicante,38.1687050,-0.8060700
+41,Murcia-Alicante,38.1687050,-0.8060700
 61,San Sebastián,43.3183340,-1.9812313
 62,Cantabria,43.1828390,-3.9878427
 30,Sevilla,37.3890924,-5.9844589
