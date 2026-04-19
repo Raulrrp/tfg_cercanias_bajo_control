@@ -6,12 +6,12 @@ import { useEffect, useMemo, useRef } from 'react';
 
 // hooks & components
 import { useStations } from '../hooks/station-hook.js';
-import { useRouteShapes } from '../hooks/route-shapes-hook.js';
+import { useLines } from '../hooks/line-hook.js';
 import StationMarker from './StationMarker.jsx';
-import RoutePolylinesLayer from './RoutePolylinesLayer.jsx';
+import PolylinesLayer from './PolylinesLayer.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
 
-const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
+const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
   const markerRefs = useRef(new Map());
 
@@ -38,7 +38,7 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
     if (!zoomTarget) return;
 
     if (zoomTarget.bounds) {
-      // For route bounds, use fitBounds
+      // For line bounds, use fitBounds
       map.fitBounds(zoomTarget.bounds, { padding: [50, 50] });
     } else if (zoomTarget.lat && zoomTarget.lng) {
       // For single point, use setView
@@ -56,7 +56,7 @@ const MapContent = ({ trains, stations, shapes, delayByTripId, onTrainSelect, se
       <ZoomControl position="topright" />
 
       {/* 1. Render Train Lines (Shapes) */}
-      <RoutePolylinesLayer shapes={shapes} />
+      <PolylinesLayer lines={lines} />
 
       {/* 2. Render Station Markers */}
       {stations.map(st => (
@@ -109,7 +109,7 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
   const position = [40.4167, -3.7037];
 
   const { stations, error: stationError } = useStations();
-  const { shapes, error: routeShapesError } = useRouteShapes();
+  const { lines, error: lineError } = useLines();
 
   const delayByTripId = useMemo(() => {
     const map = new Map();
@@ -121,8 +121,8 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
 
   return (
     <>
-      {(stationError || routeShapesError || trainError) && (
-        <div className="map-error">{stationError || routeShapesError || trainError}</div>
+      {(stationError || lineError || trainError) && (
+        <div className="map-error">{stationError || lineError || trainError}</div>
       )}
       <MapContainer 
         center={position} 
@@ -133,7 +133,7 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
         <MapContent 
           trains={trains} 
           stations={stations} 
-          shapes={shapes}
+          lines={lines}
           delayByTripId={delayByTripId}
           onTrainSelect={onTrainSelect}
           selectedTrain={selectedTrain}
