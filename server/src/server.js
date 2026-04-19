@@ -7,8 +7,6 @@ import { Server } from 'socket.io';   // WebSocket library
 
 // stationRoutes import
 import stationRoutes from './routes/station-routes.js';
-// routeShapesRoutes import
-import routeShapesRoutes from './routes/route-shapes-routes.js';
 // trainRoutes import
 import trainRoutes from './routes/train-routes.js';
 // updateRoutes import
@@ -41,8 +39,6 @@ app.use(express.json());
 
 // every query with /api/stations will be handled by stationRoutes.
 app.use('/api/stations', stationRoutes);
-// every query with /api/route-shapes will be handled by routeShapesRoutes.
-app.use('/api/route-shapes', routeShapesRoutes);
 // every query with /api/trains will be handled by trainRoutes.
 app.use('/api/trains', trainRoutes);
 // every query with /api/updates will be handled by updateRoutes.
