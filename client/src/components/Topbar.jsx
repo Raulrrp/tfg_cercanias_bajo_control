@@ -1,4 +1,4 @@
-const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChange, onSearch, searchError, selectedTrainText, filterOptions = [] }) => {
+const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChange, onSearch, searchError, selectedTrainText, filterOptions = [], urbanZones = [] }) => {
 
   const handleModeChange = (e) => {
     onFilterModeChange(e.target.value);
@@ -79,52 +79,102 @@ const Topbar = ({ filterMode, filterValue, onFilterModeChange, onFilterValueChan
             gap: 0
           }}
         >
-          <input
-            id="filter-value"
-            name="filter-value"
-            list="filter-value-options"
-            type="text"
-            placeholder="Escribe o selecciona un valor"
-            value={filterValue}
-            onChange={handleValueChange}
-            onKeyDown={handleKeyDown}
-            style={{
-              minWidth: '260px',
-              padding: '0.5rem 0.65rem',
-              borderRadius: '8px 0 0 8px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              color: '#1f2937',
-              fontSize: '0.92rem'
-            }}
-          />
-          <button
-            onClick={handleSearchClick}
-            style={{
-              padding: '0.5rem 0.65rem',
-              borderRadius: '0 8px 8px 0',
-              border: '1px solid #cbd5e1',
-              borderLeft: 'none',
-              backgroundColor: '#ffffff',
-              color: '#1f2937',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
-          >
-            🔍
-          </button>
+          {filterMode === 'urban-zone' ? (
+            <>
+              <select
+                id="filter-value"
+                name="filter-value"
+                value={filterValue}
+                onChange={handleValueChange}
+                style={{
+                  minWidth: '260px',
+                  padding: '0.5rem 0.65rem',
+                  borderRadius: '8px 0 0 8px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#1f2937',
+                  fontSize: '0.92rem'
+                }}
+              >
+                <option value="">Selecciona una zona urbana...</option>
+                {urbanZones.map((zone) => (
+                  <option key={zone.id} value={zone.name}>
+                    {zone.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleSearchClick}
+                style={{
+                  padding: '0.5rem 0.65rem',
+                  borderRadius: '0 8px 8px 0',
+                  border: '1px solid #cbd5e1',
+                  borderLeft: 'none',
+                  backgroundColor: '#ffffff',
+                  color: '#1f2937',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
+              >
+                🔍
+              </button>
+            </>
+          ) : (
+            <>
+              <input
+                id="filter-value"
+                name="filter-value"
+                list="filter-value-options"
+                type="text"
+                placeholder="Escribe o selecciona un valor"
+                value={filterValue}
+                onChange={handleValueChange}
+                onKeyDown={handleKeyDown}
+                style={{
+                  minWidth: '260px',
+                  padding: '0.5rem 0.65rem',
+                  borderRadius: '8px 0 0 8px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#1f2937',
+                  fontSize: '0.92rem'
+                }}
+              />
+              <button
+                onClick={handleSearchClick}
+                style={{
+                  padding: '0.5rem 0.65rem',
+                  borderRadius: '0 8px 8px 0',
+                  border: '1px solid #cbd5e1',
+                  borderLeft: 'none',
+                  backgroundColor: '#ffffff',
+                  color: '#1f2937',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
+              >
+                🔍
+              </button>
+              <datalist id="filter-value-options">
+                {filterOptions.map((option) => (
+                  <option key={option.id} value={option.name} />
+                ))}
+              </datalist>
+            </>
+          )}
         </div>
-        <datalist id="filter-value-options">
-          {filterOptions.map((option) => (
-            <option key={option.id} value={option.name} />
-          ))}
-        </datalist>
         {searchError && (
           <div style={{
             color: '#dc2626',
