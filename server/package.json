@@ -13,6 +13,7 @@
   "type": "module",
   "dependencies": {
     "@tfg_cercanias_bajo_control/common": "*",
+    "@turf/turf": "^6.5.0",
     "axios": "^1.13.6",
     "cors": "^2.8.6",
     "csv-parse": "^6.1.0",
