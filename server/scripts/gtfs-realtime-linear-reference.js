@@ -24,7 +24,7 @@ const FILES = {
     SHAPES: path.resolve(DATA_DIR, 'shapes/shapes.txt'),
     TRIPS: path.resolve(DATA_DIR, 'trips.txt'),
     STOP_TIMES: path.resolve(DATA_DIR, 'stop_times.txt'),
-    REALTIME_SAMPLE: path.resolve(__dirname, '../../sample-realtime-data.json') // User's GTFS-RT feed
+    REALTIME_SAMPLE: path.resolve(__dirname, '../../sample-realtime-feed2.json') // User's GTFS-RT feed
 };
 
 // Tolerance for point-on-line projection in kilometers
@@ -252,8 +252,8 @@ class LinearReferenceEngine {
         }
     }
 
-    //
-    
+    //I am here
+
     /**
      * Get the distance of a stop along the route geometry (shape).
      * 
@@ -409,9 +409,7 @@ class LinearReferenceEngine {
     }
 }
 
-// ============================================================================
-// Sample Processing and Output
-// ============================================================================
+// Sample processing output
 
 async function main() {
     console.log('\n' + '='.repeat(80));
@@ -431,7 +429,7 @@ async function main() {
         // Load sample GTFS-RT vehicles from the feed file
         let sampleVehicles = [];
         try {
-            const feedFilePath = path.resolve(__dirname, '../../sample-realtime-feed.json');
+            const feedFilePath = FILES.REALTIME_SAMPLE;
             const feedContent = fs.readFileSync(feedFilePath, 'utf-8');
             const gtfsRtFeed = JSON.parse(feedContent);
 
@@ -455,11 +453,11 @@ async function main() {
                     );
 
                 console.log(
-                    `Loaded ${sampleVehicles.length} vehicles from sample-realtime-feed.json\n`
+                    `Loaded ${sampleVehicles.length} vehicles from ${path.basename(feedFilePath)}\n`
                 );
             }
         } catch (err) {
-            console.warn('Could not load sample-realtime-feed.json:', err.message);
+            console.warn(`Could not load ${path.basename(FILES.REALTIME_SAMPLE)}:`, err.message);
             console.warn('Using empty vehicle list.\n');
         }
 
