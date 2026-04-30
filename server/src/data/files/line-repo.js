@@ -113,6 +113,9 @@ export const fetchLines = async () => {
       const [shapeId, latitude, longitude, sequence] = record;
       const shapeKey = String(shapeId ?? '').trim();
       if (!shapeKey) return;
+      
+      // Skip inverted shapes
+      if (shapeKey.includes('_INV')) return;
 
       const currentPoint = new ShapePoint({
         latitude: parseFloat(latitude),
