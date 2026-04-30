@@ -75,7 +75,15 @@ class GTFSDataStore {
     loadShapes(filePath) {
         console.log('[Data] Loading shapes.txt...');
         const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const records = parse(fileContent, { columns: true, skip_empty_lines: true, trim: true });
+        const records = parse(fileContent,
+            {   columns: true,
+                skip_empty_lines: true,
+                trim: true,
+                bom: true,
+                delimiter: ',',
+                relax_quotes: true,
+                relax_column_count: true,
+            });
 
         records.forEach((record) => {
             const shapeId = record.shape_id;
@@ -317,80 +325,109 @@ class LinearReferenceEngine {
     /**
      * Determine if a stop has been passed or is being approached by a vehicle.
      * 
-     * Logic:
-     * - If train distance >= stop distance: stop has been PASSED
-     * - If train distance < stop distance: stop is APPROACHING
+     * Uses absolute distance-to-final-stop metric (handles negative values):
+     * - If |train dist to final - stop dist to final| <= tolerance: AT_STOP
+     * - If |train dist to final| < |stop dist to final|: PASSED (train is closer to end)
+     * - Else: APPROACHING (stop is closer to end)
      * 
-     * Optional: Add tolerance threshold (e.g., within 100m of the stop)
-     * 
-     * @param {number} trainDistanceKm - Vehicle's distance along line (km)
-     * @param {number} stopDistanceKm - Stop's distance along line (km)
-     * @param {number} toleranceKm - Distance tolerance (default 0.1 km = 100m)
+     * @param {number} trainDistanceToFinalKm - Vehicle's distance to final stop (km)
+     * @param {number} stopDistanceToFinalKm - Stop's distance to final stop (km)
+     * @param {number} toleranceKm - Distance tolerance (default 0.2 km = 200m)
      * @returns {string} Status: 'PASSED' | 'AT_STOP' | 'APPROACHING'
      */
-    determineStopStatus(trainDistanceKm, stopDistanceKm, toleranceKm = 0.1) {
-        const diff = trainDistanceKm - stopDistanceKm;
+    determineStopStatus(trainDistanceToFinalKm, stopDistanceToFinalKm, toleranceKm = 0.2) {
+        const trainAbsDist = Math.abs(trainDistanceToFinalKm);
+        const stopAbsDist = Math.abs(stopDistanceToFinalKm);
+        const absDiff = Math.abs(trainAbsDist - stopAbsDist);
 
-        if (diff >= 0 && diff <= toleranceKm) {
+        // If within tolerance: AT_STOP
+        if (absDiff <= toleranceKm) {
             return 'AT_STOP';
-        } else if (diff > toleranceKm) {
+        } 
+        // If train is closer to final stop (in absolute terms): PASSED
+        else if (trainAbsDist < stopAbsDist) {
             return 'PASSED';
-        } else {
+        } 
+        // Otherwise: APPROACHING
+        else {
             return 'APPROACHING';
         }
     }
 
     /**
-     * Process a single GTFS-RT vehicle and project it on its route
+     * Process a single GTFS-RT vehicle and compare distances to final stop
      * 
      * @param {Object} vehicleData - { tripId, stopId, latitude, longitude, timestamp, vehicleId }
      * @returns {Object|null} Enriched vehicle data with linear reference info
      */
     processVehicle(vehicleData) {
         const { tripId, stopId, latitude, longitude, timestamp, vehicleId } = vehicleData;
-
+        
         // Step 1: Link trip to shape
         const shapeId = this.getShapeIdFromTripId(tripId);
         if (!shapeId) {
-            console.warn(`[Process] Trip ${tripId} has no associated shape_id.`);
             return null;
         }
 
         // Step 2: Get the route geometry (LineString)
         const lineString = this.dataStore.routeGeometries.get(shapeId);
         if (!lineString) {
-            console.warn(`[Process] Shape ${shapeId} not found in route geometries.`);
             return null;
         }
 
-        // Step 3 & 4: Project vehicle and stop positions onto the line
+        // Step 3: Get all stops for this trip and find the final stop
+        const stopTimesForTrip = this.dataStore.stopTimes.get(tripId);
+        if (!stopTimesForTrip || stopTimesForTrip.length === 0) {
+            return null;
+        }
+
+        // Final stop is the one with maximum stop_sequence
+        const finalStop = stopTimesForTrip.reduce((max, st) => 
+            st.stop_sequence > max.stop_sequence ? st : max
+        );
+
+        // Step 4: Project vehicle position onto the line
         const vehicleProjection = this.projectPointOnLine({ latitude, longitude }, lineString);
         if (!vehicleProjection) {
-            console.warn(`[Process] Could not project vehicle ${vehicleId} on line.`);
             return null;
         }
 
-        const stopProjection = this.getStopDistanceAlongRoute(tripId, stopId, lineString);
-        if (!stopProjection) {
-            console.warn(`[Process] Could not determine stop distance for stop ${stopId}.`);
+        // Step 5: Get current stop distance
+        const currentStopProjection = this.getStopDistanceAlongRoute(tripId, stopId, lineString);
+        if (!currentStopProjection) {
             return null;
         }
 
-        // Step 5: Compare distances and determine status
+        // Step 6: Get final stop distance
+        const finalStopProjection = this.getStopDistanceAlongRoute(tripId, finalStop.stop_id, lineString);
+        if (!finalStopProjection) {
+            return null;
+        }
+
+        // Step 7: Calculate distances from train to final stop and from current stop to final stop
+        const trainDistanceToFinal = finalStopProjection.distanceAlongLine - vehicleProjection.distanceAlongLine;
+        const currentStopDistanceToFinal = finalStopProjection.distanceAlongLine - currentStopProjection.distanceAlongLine;
+
+        // Step 8: Determine stop status (PASSED, AT_STOP, or APPROACHING)
+        // Use distance-to-final-stop for correct classification
         const stopStatus = this.determineStopStatus(
-            vehicleProjection.distanceAlongLine,
-            stopProjection.distanceAlongLine
+            trainDistanceToFinal,
+            currentStopDistanceToFinal
         );
 
         // Get stop info for output
         const stopInfo = this.getStopCoordinates(stopId);
+        const finalStopInfo = this.getStopCoordinates(finalStop.stop_id);
 
         return {
             vehicleId,
             tripId,
-            stopId,
-            stopName: stopInfo ? stopInfo.stop_name : 'Unknown',
+            currentStopId: stopId,
+            currentStopName: stopInfo ? stopInfo.stop_name : 'Unknown',
+            finalStopId: finalStop.stop_id,
+            finalStopName: finalStopInfo ? finalStopInfo.stop_name : 'Unknown',
             timestamp,
+            stopStatus,
             gpsPosition: {
                 latitude,
                 longitude,
@@ -398,10 +435,11 @@ class LinearReferenceEngine {
             linearReferencing: {
                 shapeId,
                 vehicleDistanceAlongRoute: vehicleProjection.distanceAlongLine,
-                stopDistanceAlongRoute: stopProjection.distanceAlongLine,
-                distanceDifference: vehicleProjection.distanceAlongLine - stopProjection.distanceAlongLine,
-                stopStatus,
-                distanceSource: stopProjection.source,
+                currentStopDistanceAlongRoute: currentStopProjection.distanceAlongLine,
+                finalStopDistanceAlongRoute: finalStopProjection.distanceAlongLine,
+                trainDistanceToFinalStop: trainDistanceToFinal,
+                currentStopDistanceToFinalStop: currentStopDistanceToFinal,
+                trainAlreadyPassedCurrentStop: stopStatus === 'PASSED',
                 projectedVehicleLocation: vehicleProjection.location,
             },
         };
@@ -413,7 +451,7 @@ class LinearReferenceEngine {
 // ============================================================================
 
 async function main() {
-    console.log('='.repeat(80));
+    console.log('\n' + '='.repeat(80));
     console.log('GTFS Realtime Linear Referencing Engine');
     console.log('='.repeat(80) + '\n');
 
@@ -463,72 +501,37 @@ async function main() {
         }
 
         // Diagnostic: Show which sample trips have valid shapes
-        console.log('\n' + '='.repeat(80));
-        console.log('Diagnostic: Trip-Shape Mapping');
-        console.log('='.repeat(80));
         const uniqueTripIds = [...new Set(sampleVehicles.map((v) => v.tripId))];
-        uniqueTripIds.forEach((tripId) => {
-            const tripData = dataStore.trips.get(tripId);
-            if (tripData) {
-                console.log(
-                    `Trip ${tripId}: shape_id=${tripData.shape_id || 'NULL (no shape assigned)'}`
-                );
-            } else {
-                console.log(`Trip ${tripId}: NOT FOUND in trips.txt`);
-            }
-        });
+        const tripsWithShapes = uniqueTripIds.filter(t => dataStore.trips.get(t)?.shape_id).length;
+        console.log(`\nDiagnostic: ${tripsWithShapes}/${uniqueTripIds.length} trips have valid shapes`);
 
-        console.log(
-            `\\nTotal trips with valid shape_id in dataset: ${Array.from(dataStore.trips.values()).filter((t) => t.shape_id).length}`
-        );
-        console.log('='.repeat(80) + '\n');
 
         console.log('\n' + '='.repeat(80));
-        console.log('Processing Real-Time Vehicles');
-        console.log('='.repeat(80) + '\n');
-
+        console.log('Parada Actual'.padEnd(25) + ' → Parada Final'.padEnd(25) + ' | Distancia Tren | Distancia Parada | Estado');
+        console.log('='.repeat(80));
         const results = [];
         sampleVehicles.forEach((vehicle) => {
             const result = lrEngine.processVehicle(vehicle);
             if (result) {
                 results.push(result);
-                console.log(`✓ Vehicle ${result.vehicleId}:`);
+                const trainDist = result.linearReferencing.trainDistanceToFinalStop.toFixed(3);
+                const stopDist = result.linearReferencing.currentStopDistanceToFinalStop.toFixed(3);
+                const statusDisplay = result.stopStatus === 'PASSED' 
+                    ? '✓ PASÓ' 
+                    : result.stopStatus === 'AT_STOP'
+                    ? '● EN PARADA'
+                    : '→ ACERCÁNDOSE';
+                
                 console.log(
-                    `  Trip: ${result.tripId} | Stop: ${result.stopId} (${result.stopName})`
+                    `${result.currentStopName.padEnd(25)} → ${result.finalStopName.padEnd(25)} | Tren: ${trainDist.padStart(7)} km | Parada: ${stopDist.padStart(7)} km | ${statusDisplay}`
                 );
-                console.log(
-                    `  Vehicle distance: ${result.linearReferencing.vehicleDistanceAlongRoute.toFixed(2)} km`
-                );
-                console.log(
-                    `  Stop distance: ${result.linearReferencing.stopDistanceAlongRoute.toFixed(2)} km`
-                );
-                console.log(
-                    `  Difference: ${result.linearReferencing.distanceDifference.toFixed(2)} km`
-                );
-                console.log(`  Status: ${result.linearReferencing.stopStatus}\n`);
             }
         });
 
         // Output summary
         console.log('='.repeat(80));
-        console.log('Summary');
+        console.log(`Total processed: ${results.length} | Passed: ${results.filter((r) => r.stopStatus === 'PASSED').length} | At Stop: ${results.filter((r) => r.stopStatus === 'AT_STOP').length} | Approaching: ${results.filter((r) => r.stopStatus === 'APPROACHING').length}`);
         console.log('='.repeat(80));
-        console.log(`Total vehicles processed: ${results.length}`);
-        console.log(
-            `PASSED: ${results.filter((r) => r.linearReferencing.stopStatus === 'PASSED').length}`
-        );
-        console.log(
-            `AT_STOP: ${results.filter((r) => r.linearReferencing.stopStatus === 'AT_STOP').length}`
-        );
-        console.log(
-            `APPROACHING: ${results.filter((r) => r.linearReferencing.stopStatus === 'APPROACHING').length}`
-        );
-
-        // Output detailed results as JSON
-        console.log('\n' + '='.repeat(80));
-        console.log('Detailed Results (JSON)');
-        console.log('='.repeat(80));
-        console.log(JSON.stringify(results, null, 2));
 
     } catch (err) {
         console.error('Fatal error:', err.message);
