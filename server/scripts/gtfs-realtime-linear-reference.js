@@ -1,13 +1,9 @@
 /**
- * GTFS Realtime Linear Referencing Engine
- * 
- * This script projects real-time vehicle positions onto GTFS static route geometries
- * using linear referencing to determine precise stop status (passed/approaching).
- * 
- * Dependencies: turf.js for geometric operations
- * 
- * Input: GTFS-RT JSON feed with vehicle position + trip_id + stop_id
- * Output: Enriched data with linear position along route + stop status
+ * From a GTFS train position snapshot computes the distance
+ * between each train and its final stop, and the distance
+ * between the train's current stop and the final stop, to
+ * determine if the train has already passed the stop or is
+ * approaching it using linear referencing
  */
 
 import fs from 'fs';
@@ -19,12 +15,11 @@ import * as turf from '@turf/turf';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ============================================================================
 // Configuration
-// ============================================================================
 
 const DATA_DIR = path.resolve(__dirname, '../data_files');
 const FILES = {
+    // Warning: Uses stops.txt
     STOPS: path.resolve(DATA_DIR, 'stations/stops.txt'),
     SHAPES: path.resolve(DATA_DIR, 'shapes/shapes.txt'),
     TRIPS: path.resolve(DATA_DIR, 'trips.txt'),
@@ -33,11 +28,9 @@ const FILES = {
 };
 
 // Tolerance for point-on-line projection in kilometers
-const PROJECTION_TOLERANCE_KM = 0.5;
+const PROJECTION_TOLERANCE_KM = 0.2;
 
-// ============================================================================
-// Data Loading and Caching
-// ============================================================================
+// Data loading
 
 class GTFSDataStore {
     constructor() {
@@ -48,13 +41,16 @@ class GTFSDataStore {
         this.routeGeometries = new Map(); // shape_id -> turf LineString
     }
 
-    /**
-     * Load stops.txt and index by stop_id
-     */
+    // Load stops.txt and index by stop_id
+
     loadStops(filePath) {
-        console.log('[Data] Loading stops.txt...');
+        console.log('Loading stops.txt...');
         const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const records = parse(fileContent, { columns: true, skip_empty_lines: true, trim: true });
+        const records = parse(fileContent, {
+            columns: true,
+            skip_empty_lines: true,
+            trim: true
+        });
 
         records.forEach((record) => {
             this.stops.set(record.stop_id, {
@@ -65,24 +61,22 @@ class GTFSDataStore {
             });
         });
 
-        console.log(`[Data] Loaded ${this.stops.size} stops.`);
+        console.log(`Loaded ${this.stops.size} stops.`);
     }
 
-    /**
-     * Load shapes.txt and group by shape_id
-     * Expects: shape_id, shape_pt_lat, shape_pt_lon, shape_pt_sequence, [shape_dist_traveled]
-     */
+    // Load shapes.txt and group by shape_id
+    // Expects: shape_id, shape_pt_lat, shape_pt_lon, shape_pt_sequence, [shape_dist_traveled]
+     
     loadShapes(filePath) {
-        console.log('[Data] Loading shapes.txt...');
+        console.log('Loading shapes.txt...');
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const records = parse(fileContent,
             {   columns: true,
                 skip_empty_lines: true,
                 trim: true,
+                // shapes.txt has a BOM, hidden bit that
+                // can cause reading problems
                 bom: true,
-                delimiter: ',',
-                relax_quotes: true,
-                relax_column_count: true,
             });
 
         records.forEach((record) => {
@@ -107,15 +101,13 @@ class GTFSDataStore {
             points.sort((a, b) => a.shape_pt_sequence - b.shape_pt_sequence);
         });
 
-        console.log(`[Data] Loaded ${this.shapes.size} unique shapes.`);
+        console.log(`Loaded ${this.shapes.size} unique shapes.`);
     }
 
-    /**
-     * Load trips.txt and index by trip_id
-     * Extracts: trip_id -> shape_id mapping
-     */
+    // Load trips.txt and index by trip_id
+    // Extracts: trip_id -> shape_id mapping
     loadTrips(filePath) {
-        console.log('[Data] Loading trips.txt...');
+        console.log('Loading trips.txt...');
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const records = parse(fileContent, { columns: true, skip_empty_lines: true, trim: true });
 
@@ -127,15 +119,13 @@ class GTFSDataStore {
             });
         });
 
-        console.log(`[Data] Loaded ${this.trips.size} trips.`);
+        console.log(`Loaded ${this.trips.size} trips.`);
     }
 
-    /**
-     * Load stop_times.txt and group by trip_id
-     * Preserves: stop_id, stop_sequence, shape_dist_traveled (if available)
-     */
+    // Load stop_times.txt and group by trip_id
+    // Preserves: stop_id, stop_sequence, shape_dist_traveled
     loadStopTimes(filePath) {
-        console.log('[Data] Loading stop_times.txt...');
+        console.log('Loading stop_times.txt...');
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const records = parse(fileContent, { columns: true, skip_empty_lines: true, trim: true });
 
@@ -160,39 +150,34 @@ class GTFSDataStore {
             stops.sort((a, b) => a.stop_sequence - b.stop_sequence);
         });
 
-        console.log(`[Data] Loaded stop_times for ${this.stopTimes.size} trips.`);
+        console.log(`Loaded stop_times for ${this.stopTimes.size} trips.`);
     }
 
-    /**
-     * Build and cache LineString geometries from shapes
-     * Pre-computes all route geometries for fast lookups
-     */
+    // Build and cache LineString geometries from shapes
+    // Pre-computes all route geometries for fast lookups
+     
     buildRouteGeometries() {
-        console.log('[Geometry] Building route LineStrings...');
+        console.log('Building route LineStrings...');
 
+        // when used in maps forEach(value, key)
         this.shapes.forEach((points, shapeId) => {
-            if (points.length < 2) {
-                console.warn(`[Geometry] Shape ${shapeId} has fewer than 2 points; skipping.`);
-                return;
-            }
 
             // Create GeoJSON coordinate array: [lon, lat] order (GeoJSON standard)
             const coordinates = points.map((p) => [p.shape_pt_lon, p.shape_pt_lat]);
 
             try {
+                // from an array of coordinates creates a LineString
                 const lineString = turf.lineString(coordinates);
                 this.routeGeometries.set(shapeId, lineString);
             } catch (err) {
-                console.error(`[Geometry] Error building LineString for shape ${shapeId}:`, err.message);
+                console.error(`Error building LineString for shape ${shapeId}:`, err.message);
             }
         });
 
-        console.log(`[Geometry] Built ${this.routeGeometries.size} route geometries.`);
+        console.log(`Built ${this.routeGeometries.size} route geometries.`);
     }
 
-    /**
-     * Load all data from GTFS files
-     */
+    // Load all needed data from GTFS files
     async loadAll() {
         try {
             this.loadStops(FILES.STOPS);
@@ -200,38 +185,28 @@ class GTFSDataStore {
             this.loadTrips(FILES.TRIPS);
             this.loadStopTimes(FILES.STOP_TIMES);
             this.buildRouteGeometries();
-            console.log('[Data] All GTFS data loaded successfully.\n');
+            console.log('All GTFS data loaded successfully.\n');
         } catch (err) {
-            console.error('[Data] Error loading GTFS files:', err.message);
+            console.error('Error loading GTFS files:', err.message);
             throw err;
         }
     }
 }
 
-// ============================================================================
-// Linear Referencing Engine
-// ============================================================================
+// Linear referencing engine
 
 class LinearReferenceEngine {
     constructor(dataStore) {
         this.dataStore = dataStore;
     }
 
-    /**
-     * Get the shape_id for a given trip_id from trips.txt
-     * @param {string} tripId - Trip identifier
-     * @returns {string|null} Shape ID or null if not found
-     */
+    // Gets the shape_id from a given trip_id using trips.txt
     getShapeIdFromTripId(tripId) {
         const trip = this.dataStore.trips.get(tripId);
         return trip ? trip.shape_id : null;
     }
 
-    /**
-     * Get stop coordinates (lat/lon) from stops.txt by stop_id
-     * @param {string} stopId - Stop identifier
-     * @returns {Object|null} { stop_lat, stop_lon } or null
-     */
+    // Get stop coordinates (lat/lon) from stops.txt by stop_id
     getStopCoordinates(stopId) {
         const stop = this.dataStore.stops.get(stopId);
         return stop
@@ -245,10 +220,6 @@ class LinearReferenceEngine {
      * This function uses Turf.js's nearestPointOnLine to find the closest point
      * on the route geometry and directly uses the `location` property which provides
      * the cumulative distance along the line from the start to the projected point.
-     * 
-     * @param {Object} point - { latitude, longitude }
-     * @param {Object} lineString - Turf LineString geometry
-     * @returns {Object|null} { distanceAlongLine (km), projectedPoint (turf Point) }
      */
     projectPointOnLine(point, lineString) {
         if (!lineString || !lineString.geometry.coordinates) {
@@ -281,17 +252,14 @@ class LinearReferenceEngine {
         }
     }
 
+    //
+    
     /**
      * Get the distance of a stop along the route geometry (shape).
      * 
      * Priority:
      * 1. Use shape_dist_traveled from stop_times.txt if available (most accurate)
      * 2. Otherwise, project the stop's coordinates onto the route LineString
-     * 
-     * @param {string} tripId - Trip identifier
-     * @param {string} stopId - Stop identifier
-     * @param {Object} lineString - Turf LineString geometry of the route
-     * @returns {Object|null} { distanceAlongLine (km), source (string: 'shapeDist' or 'projection') }
      */
     getStopDistanceAlongRoute(tripId, stopId, lineString) {
         // First, check if stop_times.txt has shape_dist_traveled
@@ -329,11 +297,6 @@ class LinearReferenceEngine {
      * - If |train dist to final - stop dist to final| <= tolerance: AT_STOP
      * - If |train dist to final| < |stop dist to final|: PASSED (train is closer to end)
      * - Else: APPROACHING (stop is closer to end)
-     * 
-     * @param {number} trainDistanceToFinalKm - Vehicle's distance to final stop (km)
-     * @param {number} stopDistanceToFinalKm - Stop's distance to final stop (km)
-     * @param {number} toleranceKm - Distance tolerance (default 0.2 km = 200m)
-     * @returns {string} Status: 'PASSED' | 'AT_STOP' | 'APPROACHING'
      */
     determineStopStatus(trainDistanceToFinalKm, stopDistanceToFinalKm, toleranceKm = 0.2) {
         const trainAbsDist = Math.abs(trainDistanceToFinalKm);
@@ -492,12 +455,12 @@ async function main() {
                     );
 
                 console.log(
-                    `[Data] Loaded ${sampleVehicles.length} vehicles from sample-realtime-feed.json\n`
+                    `Loaded ${sampleVehicles.length} vehicles from sample-realtime-feed.json\n`
                 );
             }
         } catch (err) {
-            console.warn('[Data] Could not load sample-realtime-feed.json:', err.message);
-            console.warn('[Data] Using empty vehicle list.\n');
+            console.warn('Could not load sample-realtime-feed.json:', err.message);
+            console.warn('Using empty vehicle list.\n');
         }
 
         // Diagnostic: Show which sample trips have valid shapes
