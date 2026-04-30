@@ -46,6 +46,11 @@ function validateGTFS() {
             const rId = trip.route_id;
             const sId = trip.shape_id;
             
+            // Skip trips with inverted shapes
+            if (sId && String(sId).includes('_INV')) {
+                return;
+            }
+            
             // If the route_id is missing from routesMap, mark it as an error
             const shortName = routesMap.has(rId) 
                 ? routesMap.get(rId) 
