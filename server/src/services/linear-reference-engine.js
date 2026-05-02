@@ -95,7 +95,7 @@ export class LinearReferenceEngine {
 
         // If within tolerance: AT_STOP
         if (absDiff <= toleranceKm) {
-            return 'AT_STOP';
+            return 'STOPPED_AT';
         }
         // If train is closer to final stop (in absolute terms): PASSED
         else if (trainAbsDist < stopAbsDist) {
@@ -103,7 +103,7 @@ export class LinearReferenceEngine {
         }
         // Otherwise: APPROACHING
         else {
-            return 'APPROACHING';
+            return 'IN_TRANSIT_TO';
         }
     }
 }
