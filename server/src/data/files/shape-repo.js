@@ -1,10 +1,12 @@
 import fs from 'fs/promises';
 import path from 'path';
+import url from 'url';
 import { parse } from 'csv-parse/sync';
 import { Shape } from '@tfg_cercanias_bajo_control/common/models/Shape.js';
 import { ShapePoint } from '@tfg_cercanias_bajo_control/common/models/ShapePoint.js';
 
-const SHAPES_FILE_PATH = path.join(process.cwd(), 'data_files', 'shapes', 'shapes.txt');
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const SHAPES_FILE_PATH = path.resolve(__dirname, '../../../data_files/shapes/shapes.txt');
 
 let cachedShapes = null;
 

@@ -4,10 +4,12 @@
 import { StationMapper } from '../mappers/station-mapper.js';
 import fs from 'fs/promises';
 import path from 'path';
+import url from 'url';
 import { parse } from 'csv-parse/sync';
 
 // Read stations only from the new GTFS-like TXT file.
-const STATIONS_FILE_PATH = path.join(process.cwd(), 'data_files', 'stations', 'stops.txt');
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const STATIONS_FILE_PATH = path.resolve(__dirname, '../../../data_files/stations/stops.txt');
 
 /**
  * Reads the stations.json file from the local filesystem
