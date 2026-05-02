@@ -21,7 +21,7 @@ const FILES = {
     SHAPES: path.resolve(DATA_DIR, 'shapes/shapes.txt'),
     TRIPS: path.resolve(DATA_DIR, 'trips.txt'),
     STOP_TIMES: path.resolve(DATA_DIR, 'stop_times.txt'),
-    REALTIME_SAMPLE: path.resolve(DATA_DIR, 'gtfs_train_samples/sample-realtime-feed3.json') // User's GTFS-RT feed
+    REALTIME_SAMPLE: path.resolve(DATA_DIR, 'gtfs_train_samples/train-sample3.json') // User's GTFS-RT feed
 };
 
 // Tolerance for point-on-line projection in kilometers
