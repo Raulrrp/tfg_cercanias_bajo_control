@@ -97,33 +97,19 @@ async function main() {
             console.warn('Using empty vehicle list.\n');
         }
 
-        // Process vehicles and display results
+        // Client-view: show only corrected stop and corrected status
         console.log('\n' + '='.repeat(80));
-        console.log('Parada Actual'.padEnd(25) + ' → Parada Final'.padEnd(25) + ' | Distancia Tren | Distancia Parada | Estado');
+        console.log('Train ID'.padEnd(12) + ' | Corrected stop'.padEnd(30) + ' | Corrected status');
         console.log('='.repeat(80));
 
-        const results = [];
         sampleVehicles.forEach((vehicle) => {
-            const result = detector.processVehicle(vehicle);
-            if (!result) return;
-            results.push(result);
-            const trainDist = result.linearReferencing.trainDistanceToFinalStop.toFixed(3);
-            const stopDist = result.linearReferencing.currentStopDistanceToFinalStop.toFixed(3);
-            const statusDisplay = result.stopStatus === 'PASSED'
-                ? 'PASSED'
-                : result.stopStatus === 'AT_STOP'
-                    ? 'AT STOP'
-                    : 'APPROACHING';
-
-            console.log(
-                `${result.currentStopName.padEnd(25)} → ${result.finalStopName.padEnd(25)} | Tren: ${trainDist.padStart(7)} km | Parada: ${stopDist.padStart(7)} km | ${statusDisplay}`
-            );
+            const corrected = detector.correctTrainPos(vehicle);
+            if (!corrected) return;
+            const statusLabel = corrected.status === 'IN_TRANSIT_TO' ? 'IN TRANSIT TO' : corrected.status === 'STOPPED_AT' ? 'STOPPED AT' : corrected.status;
+            const trainId = corrected.train && corrected.train.id ? corrected.train.id : 'Unknown';
+            console.log(`${String(trainId).padEnd(12)} | ${String(corrected.nextStationId).padEnd(30)} | ${statusLabel}`);
         });
-
-        // Output summary
-        console.log('='.repeat(80));
-        console.log(`Total processed: ${results.length} | Passed: ${results.filter((r) => r.stopStatus === 'PASSED').length} | At Stop: ${results.filter((r) => r.stopStatus === 'AT_STOP').length} | Approaching: ${results.filter((r) => r.stopStatus === 'APPROACHING').length}`);
-        console.log('='.repeat(80));
+        console.log('='.repeat(60));
 
     } catch (err) {
         console.error('Fatal error:', err.message);
