@@ -17,6 +17,7 @@ import path from 'path';
 import { fetchStations } from '../src/data/files/station-repo-txt.js';
 import { fetchShapes } from '../src/data/files/shape-repo.js';
 import { fetchTrips } from '../src/data/files/trip-repo.js';
+import { TrainPos } from '@tfg_cercanias_bajo_control/common/models/TrainPos.js';
 import { LinearReferenceLoader } from '../src/services/linear-reference-loader.js';
 import { LinearReferenceEngine } from '../src/services/linear-reference-engine.js';
 import { ArrivalDetector } from '../src/services/arrival-detector.js';
@@ -61,23 +62,30 @@ async function main() {
             const feedContent = fs.readFileSync(feedFilePath, 'utf-8');
             const gtfsRtFeed = JSON.parse(feedContent);
 
+            // If the gtfs file has the expected structure
             if (gtfsRtFeed.entity && Array.isArray(gtfsRtFeed.entity)) {
                 sampleVehicles = gtfsRtFeed.entity
                     .filter((entity) => entity.vehicle) // Only vehicle entities
                     .map((entity) => {
                         const vehicle = entity.vehicle;
-                        return {
-                            vehicleId: vehicle.vehicle?.id || entity.id,
+                        return TrainPos.fromJson({
+                            id: entity.id,
+                            train: vehicle.vehicle,
                             tripId: vehicle.trip?.tripId,
-                            stopId: vehicle.stopId,
                             latitude: vehicle.position?.latitude,
                             longitude: vehicle.position?.longitude,
+                            status: vehicle.currentStatus,
                             timestamp: vehicle.timestamp || gtfsRtFeed.header?.timestamp,
-                        };
+                            nextStationId: vehicle.stopId,
+                        });
                     })
+                    // deletes every entry that doesn't have the required fields
                     .filter(
                         (v) =>
-                            v.tripId && v.stopId && v.latitude !== undefined && v.longitude !== undefined
+                            v.tripId &&
+                            v.nextStationId &&
+                            v.latitude !== undefined &&
+                            v.longitude !== undefined
                     );
 
                 console.log(
@@ -102,10 +110,10 @@ async function main() {
             const trainDist = result.linearReferencing.trainDistanceToFinalStop.toFixed(3);
             const stopDist = result.linearReferencing.currentStopDistanceToFinalStop.toFixed(3);
             const statusDisplay = result.stopStatus === 'PASSED'
-                ? '✓ PASÓ'
+                ? 'PASSED'
                 : result.stopStatus === 'AT_STOP'
-                    ? '● EN PARADA'
-                    : '→ ACERCÁNDOSE';
+                    ? 'AT STOP'
+                    : 'APPROACHING';
 
             console.log(
                 `${result.currentStopName.padEnd(25)} → ${result.finalStopName.padEnd(25)} | Tren: ${trainDist.padStart(7)} km | Parada: ${stopDist.padStart(7)} km | ${statusDisplay}`
