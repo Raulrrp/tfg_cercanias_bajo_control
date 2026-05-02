@@ -17,7 +17,7 @@ import path from 'path';
 import { fetchStations } from '../src/data/files/station-repo-txt.js';
 import { fetchShapes } from '../src/data/files/shape-repo.js';
 import { fetchTrips } from '../src/data/files/trip-repo.js';
-import { TrainPos } from '@tfg_cercanias_bajo_control/common/models/TrainPos.js';
+import { TrainPos } from '../../common/models/TrainPos.js';
 import { LinearReferenceLoader } from '../src/services/linear-reference-loader.js';
 import { LinearReferenceEngine } from '../src/services/linear-reference-engine.js';
 import { ArrivalDetector } from '../src/services/arrival-detector-service.js';
@@ -110,10 +110,10 @@ async function main() {
             const trainDist = result.linearReferencing.trainDistanceToFinalStop.toFixed(3);
             const stopDist = result.linearReferencing.currentStopDistanceToFinalStop.toFixed(3);
             const statusDisplay = result.stopStatus === 'PASSED'
-                ? 'PASSED'
+                ? '✓ PASÓ'
                 : result.stopStatus === 'AT_STOP'
-                    ? 'AT STOP'
-                    : 'APPROACHING';
+                    ? '● EN PARADA'
+                    : '→ ACERCÁNDOSE';
 
             console.log(
                 `${result.currentStopName.padEnd(25)} → ${result.finalStopName.padEnd(25)} | Tren: ${trainDist.padStart(7)} km | Parada: ${stopDist.padStart(7)} km | ${statusDisplay}`
