@@ -18,7 +18,7 @@ export class ArrivalDetector {
       * @returns {TrainPos|null} Corrected TrainPos with accurate nextStationId and status
      */
     correctTrainPos(trainPos) {
-          const { tripId, nextStationId: stopId, latitude, longitude } = trainPos;
+        const { tripId, latitude, longitude } = trainPos;
 
         // Step 1: Get trip domain object and extract shape
         const trip = this.loader.getTrip(tripId);
@@ -32,7 +32,7 @@ export class ArrivalDetector {
             return null;
         }
 
-        // Step 3: Get final stop and next stop from stop_times
+        // Step 3: Get stop times for the trip
         const stopTimesForTrip = this.loader.getStopTimesForTrip(tripId);
         if (!stopTimesForTrip || stopTimesForTrip.length === 0) {
             return null;
@@ -43,61 +43,73 @@ export class ArrivalDetector {
             st.stopSequence > max.stopSequence ? st : max
         );
 
-        const currentStopTimeEntry = stopTimesForTrip.find((entry) => entry.stopId === stopId);
-        if (!currentStopTimeEntry) {
-            return null;
-        }
-
-        // Next stop: smallest stop_sequence that is greater than the current one
-        const nextStopTimeEntry = stopTimesForTrip
-            .filter((entry) => entry.stopSequence > currentStopTimeEntry.stopSequence)
-            .reduce(
-                (min, entry) =>
-                    min === null || entry.stopSequence < min.stopSequence ? entry : min,
-                null
-            );
-
-        // Step 4: Project vehicle position onto the line
+        // Compute vehicle projection distance (used to find the computed next stop)
         const vehicleProjection = this.engine.projectPointOnLine({ latitude, longitude }, lineString);
         if (!vehicleProjection) {
             return null;
         }
 
-        // Step 5: Get current stop distance
-        const currentStopProjection = this.engine.getStopDistanceAlongRoute(tripId, stopId, lineString);
-        if (!currentStopProjection) {
-            return null;
-        }
-
-        // Step 6: Get final stop distance
-        const finalStopProjection = this.engine.getStopDistanceAlongRoute(tripId, finalStopTimeEntry.stopId, lineString);
+        // Step 5: Get final stop distance
+        const finalStopProjection = this.engine.getStopDistanceAlongRoute(
+            tripId,
+            finalStopTimeEntry.stopId,
+            lineString
+        );
         if (!finalStopProjection) {
             return null;
         }
 
-        // Step 7: Calculate distances from train to final stop and from current stop to final stop
+        // Step 6: Calculate distance from train to final stop
         const trainDistanceToFinal = finalStopProjection.distanceAlongLine - vehicleProjection.distanceAlongLine;
-        const currentStopDistanceToFinal = finalStopProjection.distanceAlongLine - currentStopProjection.distanceAlongLine;
 
-        // Step 8: Determine stop status (PASSED, AT_STOP, or APPROACHING)
-        const stopStatus = this.engine.determineStopStatus(
-            trainDistanceToFinal,
-            currentStopDistanceToFinal
-        );
+        // Step 7: Compute stop distances along the route
+        const vehicleDist = vehicleProjection.distanceAlongLine;
+        const stopsWithDist = stopTimesForTrip
+            .map((st) => {
+                const p = this.engine.getStopDistanceAlongRoute(tripId, st.stopId, lineString);
+                return p ? { entry: st, distance: p.distanceAlongLine } : null;
+            })
+            .filter(Boolean);
 
-        let correctedNextStationId = stopId;
-        let correctedStatus = stopStatus;
+        const nearestStopObj = stopsWithDist.reduce((nearest, stop) => {
+            if (nearest === null) {
+                return stop;
+            }
 
-        if (stopStatus === 'PASSED' && nextStopTimeEntry) {
-            correctedNextStationId = nextStopTimeEntry.stopId;
-            correctedStatus = 'IN_TRANSIT_TO';
-        } else if (stopStatus === 'PASSED') {
-            // there is no next stop, but I've passed the stop
-            // I'll say I am arriving
-            correctedStatus = 'IN_TRANSIT_TO';
+            const currentDelta = Math.abs(stop.distance - vehicleDist);
+            const nearestDelta = Math.abs(nearest.distance - vehicleDist);
+            return currentDelta < nearestDelta ? stop : nearest;
+        }, null);
+
+        const nearestDeltaKm = nearestStopObj ? Math.abs(nearestStopObj.distance - vehicleDist) : Infinity;
+        const nextStopAheadObj = stopsWithDist
+            .filter((stop) => stop.distance > vehicleDist)
+            .reduce((closestAhead, stop) => {
+                if (closestAhead === null) {
+                    return stop;
+                }
+
+                return stop.distance < closestAhead.distance ? stop : closestAhead;
+            }, null);
+
+        const computedNextStopId = nearestDeltaKm <= 0.2
+            ? nearestStopObj.entry.stopId
+            : (nextStopAheadObj ? nextStopAheadObj.entry.stopId : finalStopTimeEntry.stopId);
+
+        const computedStopProjection = this.engine.getStopDistanceAlongRoute(tripId, computedNextStopId, lineString);
+        if (!computedStopProjection) {
+            return null;
         }
-        // if stopStatus === 'STOPPED_AT' no changes required
-        // if stopStatus === 'IN_TRANSIT_TO' no changes required
+
+        const computedStopDistToFinal = finalStopProjection.distanceAlongLine - computedStopProjection.distanceAlongLine;
+
+        // Determine corrected status with a 200m stop tolerance
+        let correctedStatus = nearestDeltaKm <= 0.2
+            ? 'STOPPED_AT'
+            : this.engine.determineStopStatus(trainDistanceToFinal, computedStopDistToFinal);
+        if (correctedStatus === 'PASSED') correctedStatus = 'IN_TRANSIT_TO';
+
+        const correctedNextStationId = computedNextStopId;
 
         // Create corrected TrainPos with accurate nextStationId and status
         const correctedTrainPos = new TrainPos({
