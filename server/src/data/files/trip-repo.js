@@ -1,9 +1,11 @@
 import fs from 'fs/promises';
 import path from 'path';
+import url from 'url';
 import { parse } from 'csv-parse/sync';
 import { Trip } from '@tfg_cercanias_bajo_control/common/models/Trip.js';
 
-const TRIPS_FILE_PATH = path.join(process.cwd(), 'data_files', 'trips.txt');
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const TRIPS_FILE_PATH = path.resolve(__dirname, '../../../data_files/trips.txt');
 
 let cachedTrips = null;
 
