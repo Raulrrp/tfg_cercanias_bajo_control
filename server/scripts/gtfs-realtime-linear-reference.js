@@ -7,16 +7,13 @@
  */
 
 import fs from 'fs';
+import url from 'url';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import * as turf from '@turf/turf';
 
-const __filename = fileURLToPath(import.meta.url);
+const __filename = url.fileURLToPath(import.meta.url); 
 const __dirname = path.dirname(__filename);
-
-// Configuration
-
 const DATA_DIR = path.resolve(__dirname, '../data_files');
 const FILES = {
     // Warning: Uses stops.txt
@@ -24,7 +21,7 @@ const FILES = {
     SHAPES: path.resolve(DATA_DIR, 'shapes/shapes.txt'),
     TRIPS: path.resolve(DATA_DIR, 'trips.txt'),
     STOP_TIMES: path.resolve(DATA_DIR, 'stop_times.txt'),
-    REALTIME_SAMPLE: path.resolve(__dirname, '../../sample-realtime-feed2.json') // User's GTFS-RT feed
+    REALTIME_SAMPLE: path.resolve(DATA_DIR, 'gtfs_train_samples/sample-realtime-feed3.json') // User's GTFS-RT feed
 };
 
 // Tolerance for point-on-line projection in kilometers
