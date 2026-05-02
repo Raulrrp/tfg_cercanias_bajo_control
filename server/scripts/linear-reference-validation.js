@@ -1,16 +1,3 @@
-/**
- * GTFS Realtime Linear Referencing Script
- * 
- * Simple test harness that validates arrival detection using linear referencing.
- * Loads sample GTFS-RT data and determines if trains have passed stops or are approaching.
- * 
- * This script orchestrates:
- * - Existing domain repos (loads static GTFS files)
- * - LinearReferenceLoader (indexes domain objects and builds geometries)
- * - LinearReferenceEngine (computes geometric distances)
- * - ArrivalDetector (classifies train status)
- */
-
 import fs from 'fs';
 import url from 'url';
 import path from 'path';
@@ -27,98 +14,119 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.resolve(__dirname, '../data_files');
 
 const FILES = {
-    REALTIME_SAMPLE: path.resolve(DATA_DIR, 'gtfs_train_samples/train-sample3.json'),
+	REALTIME_SAMPLE: path.resolve(DATA_DIR, 'gtfs_train_samples/train-sample3.json'),
 };
 
-/**
- * Main entry point
- */
-async function main() {
-    console.log('\n' + '='.repeat(80));
-    console.log('GTFS Realtime Linear Referencing Engine - Sample Data Validator');
-    console.log('='.repeat(80) + '\n');
-
-    try {
-        // Load domain objects using existing repos
-        console.log('Loading GTFS domain objects from existing repos...\n');
-        const [stations, shapes, trips] = await Promise.all([
-            fetchStations(),
-            fetchShapes(),
-            fetchTrips(),
-        ]);
-
-        // Initialize loader with domain objects
-        const loader = new LinearReferenceLoader();
-        await loader.initialize(stations, shapes, trips);
-
-        // Initialize engine and detector
-        const engine = new LinearReferenceEngine(loader);
-        const detector = new ArrivalDetector(loader, engine);
-
-        // Load sample GTFS-RT vehicles from the feed file
-        let sampleVehicles = [];
-        try {
-            const feedFilePath = FILES.REALTIME_SAMPLE;
-            const feedContent = fs.readFileSync(feedFilePath, 'utf-8');
-            const gtfsRtFeed = JSON.parse(feedContent);
-
-            // If the gtfs file has the expected structure
-            if (gtfsRtFeed.entity && Array.isArray(gtfsRtFeed.entity)) {
-                sampleVehicles = gtfsRtFeed.entity
-                    .filter((entity) => entity.vehicle) // Only vehicle entities
-                    .map((entity) => {
-                        const vehicle = entity.vehicle;
-                        return TrainPos.fromJson({
-                            id: entity.id,
-                            train: vehicle.vehicle,
-                            tripId: vehicle.trip?.tripId,
-                            latitude: vehicle.position?.latitude,
-                            longitude: vehicle.position?.longitude,
-                            status: vehicle.currentStatus,
-                            timestamp: vehicle.timestamp || gtfsRtFeed.header?.timestamp,
-                            nextStationId: vehicle.stopId,
-                        });
-                    })
-                    // deletes every entry that doesn't have the required fields
-                    .filter(
-                        (v) =>
-                            v.tripId &&
-                            v.nextStationId &&
-                            v.latitude !== undefined &&
-                            v.longitude !== undefined
-                    );
-
-                console.log(
-                    `Loaded ${sampleVehicles.length} vehicles from ${path.basename(feedFilePath)}\n`
-                );
-            }
-        } catch (err) {
-            console.warn(`Could not load ${path.basename(FILES.REALTIME_SAMPLE)}:`, err.message);
-            console.warn('Using empty vehicle list.\n');
-        }
-
-        // Client-view: show only corrected stop and corrected status
-        console.log('\n' + '='.repeat(80));
-        console.log('Train ID'.padEnd(12) + ' | Corrected stop'.padEnd(30) + ' | Corrected status');
-        console.log('='.repeat(80));
-
-        sampleVehicles.forEach((vehicle) => {
-            const corrected = detector.correctTrainPos(vehicle);
-            if (!corrected) return;
-            const statusLabel = corrected.status === 'IN_TRANSIT_TO' ? 'IN TRANSIT TO' : corrected.status === 'STOPPED_AT' ? 'STOPPED AT' : corrected.status;
-            const trainId = corrected.train && corrected.train.id ? corrected.train.id : 'Unknown';
-            console.log(`${String(trainId).padEnd(12)} | ${String(corrected.nextStationId).padEnd(30)} | ${statusLabel}`);
-        });
-        console.log('='.repeat(60));
-
-    } catch (err) {
-        console.error('Fatal error:', err.message);
-        process.exitCode = 1;
-    }
+function formatStatus(status) {
+	if (status === 'IN_TRANSIT_TO') return 'IN TRANSIT TO';
+	if (status === 'STOPPED_AT') return 'STOPPED AT';
+	return status || 'Unknown';
 }
 
-// Run the main function
+async function main() {
+	console.log('\n' + '='.repeat(80));
+	console.log('GTFS Realtime Linear Referencing Validation');
+	console.log('='.repeat(80) + '\n');
+
+	try {
+		const [stations, shapes, trips] = await Promise.all([
+			fetchStations(),
+			fetchShapes(),
+			fetchTrips(),
+		]);
+
+		const loader = new LinearReferenceLoader();
+		await loader.initialize(stations, shapes, trips);
+
+		const engine = new LinearReferenceEngine(loader);
+		const detector = new ArrivalDetector(loader, engine);
+
+		const feedFilePath = FILES.REALTIME_SAMPLE;
+		const feedContent = fs.readFileSync(feedFilePath, 'utf-8');
+		const gtfsRtFeed = JSON.parse(feedContent);
+
+		const sampleVehicles = Array.isArray(gtfsRtFeed.entity)
+			? gtfsRtFeed.entity
+				.filter((entity) => entity.vehicle)
+				.map((entity) => {
+					const vehicle = entity.vehicle;
+					return TrainPos.fromJson({
+						id: entity.id,
+						train: vehicle.vehicle,
+						tripId: vehicle.trip?.tripId,
+						latitude: vehicle.position?.latitude,
+						longitude: vehicle.position?.longitude,
+						status: vehicle.currentStatus,
+						timestamp: vehicle.timestamp || gtfsRtFeed.header?.timestamp,
+						nextStationId: vehicle.stopId,
+					});
+				})
+				.filter(
+					(vehicle) =>
+						vehicle.tripId &&
+						vehicle.nextStationId &&
+						vehicle.latitude !== undefined &&
+						vehicle.longitude !== undefined
+				)
+			: [];
+
+		console.log(`Loaded ${sampleVehicles.length} vehicles from ${path.basename(feedFilePath)}\n`);
+
+		console.log(
+			'Train ID'.padEnd(12) +
+			' | Raw stop'.padEnd(18) +
+			' | Raw status'.padEnd(16) +
+			' | Stop->Final(km)'.padStart(15) +
+			' | Train->Final(km)'.padStart(16) +
+			' | Corrected stop'.padEnd(18) +
+			' | Corrected status'
+		);
+		console.log('='.repeat(132));
+
+		sampleVehicles.forEach((vehicle) => {
+			const corrected = detector.correctTrainPos(vehicle);
+			const rawTrainId = vehicle.train && vehicle.train.id ? vehicle.train.id : vehicle.id || 'Unknown';
+			const correctedStop = corrected ? corrected.nextStationId : 'N/A';
+			const correctedStatus = corrected ? formatStatus(corrected.status) : 'N/A';
+
+			const trip = loader.getTrip(vehicle.tripId);
+			if (!trip || !trip.shapeId) return;
+			const lineString = loader.getLineString(trip.shapeId);
+			if (!lineString) return;
+			const stopTimesForTrip = loader.getStopTimesForTrip(vehicle.tripId);
+			if (!stopTimesForTrip || stopTimesForTrip.length === 0) return;
+
+			const finalStopTimeEntry = stopTimesForTrip.reduce((max, st) =>
+				st.stopSequence > max.stopSequence ? st : max
+			);
+
+			const vehicleProjection = engine.projectPointOnLine(
+				{ latitude: vehicle.latitude, longitude: vehicle.longitude },
+				lineString
+			);
+			const rawStopProjection = engine.getStopDistanceAlongRoute(vehicle.tripId, vehicle.nextStationId, lineString);
+			const finalStopProjection = engine.getStopDistanceAlongRoute(vehicle.tripId, finalStopTimeEntry.stopId, lineString);
+
+			if (!vehicleProjection || !rawStopProjection || !finalStopProjection) return;
+
+			const stopToFinalKm = finalStopProjection.distanceAlongLine - rawStopProjection.distanceAlongLine;
+			const trainToFinalKm = finalStopProjection.distanceAlongLine - vehicleProjection.distanceAlongLine;
+
+			const stopToFinalStr = stopToFinalKm.toFixed(3);
+			const trainToFinalStr = trainToFinalKm.toFixed(3);
+
+			console.log(
+				`${String(rawTrainId).padEnd(12)} | ${String(vehicle.nextStationId).padEnd(18)} | ${String(formatStatus(vehicle.status)).padEnd(16)} | ${stopToFinalStr.padStart(15)} | ${trainToFinalStr.padStart(16)} | ${String(correctedStop).padEnd(18)} | ${correctedStatus}`
+			);
+		});
+
+		console.log('='.repeat(132));
+	} catch (err) {
+		console.error('Fatal error:', err.message);
+		process.exitCode = 1;
+	}
+}
+
 main();
 
-// Export services for use as modules
 export { LinearReferenceLoader, LinearReferenceEngine, ArrivalDetector };
