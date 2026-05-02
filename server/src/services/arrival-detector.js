@@ -12,11 +12,11 @@ export class ArrivalDetector {
     /**
      * Process a single GTFS-RT vehicle and determine its status relative to a stop
      * 
-     * @param {Object} vehicleData - { tripId, stopId, latitude, longitude, timestamp, vehicleId }
+     * @param {Object} vehicleData - TrainPos domain object
      * @returns {Object|null} Enriched vehicle data with arrival classification
      */
     processVehicle(vehicleData) {
-        const { tripId, stopId, latitude, longitude, timestamp, vehicleId } = vehicleData;
+        const { id: vehicleId, train, tripId, nextStationId: stopId, latitude, longitude, timestamp } = vehicleData;
 
         // Step 1: Get trip domain object and extract shape
         const trip = this.loader.getTrip(tripId);
@@ -75,6 +75,7 @@ export class ArrivalDetector {
 
         return {
             vehicleId,
+            train,
             tripId,
             currentStopId: stopId,
             currentStopName: currentStation ? currentStation.name : 'Unknown',
