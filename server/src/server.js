@@ -17,9 +17,25 @@ import tripRoutes from './routes/trip-routes.js';
 import lineRoutes from './routes/line-routes.js';
 // urbanZonesRoutes import
 import urbanZonesRoutes from './routes/urban-zones-routes.js';
-
+// timetablesRoutes import
+import timetablesRoutes from './routes/stop-times-routes.js';
+// linearReferenceLoader import
+import {LinearReferenceLoader} from './services/linear-reference-loader.js';
+// linearReferenceEngine import
+import {LinearReferenceEngine} from './services/linear-reference-engine.js';
+// arrivalDetector
+import {ArrivalDetector} from './services/arrival-detector-service.js';
+// getStations import
+import { getStations } from './services/station-service.js';
+// getShapes import
+import { getShapes } from './services/shape-service.js';
+// getTrips import
+import { getTrips } from './services/trip-service.js';
+// train service configuration
+import { configureTrainService } from './services/train-service.js';
 // Logic and Controller imports for real-time tracking
 import { handleSocketConnection } from './controllers/realtime-controller.js';
+
 
 // reads the .env file to read variables
 dotenv.config();
@@ -55,6 +71,8 @@ app.use('/api/trips', tripRoutes);
 app.use('/api/lines', lineRoutes);
 // every query with /api/urban-zones will be handled by urbanZonesRoutes.
 app.use('/api/urban-zones', urbanZonesRoutes);
+// every query with /api/stop-times will be handled by timetablesRoutes.
+app.use('/api/stop-times', timetablesRoutes);
 
 // test path
 app.get('/', (req, res) => {
@@ -62,12 +80,25 @@ app.get('/', (req, res) => {
 });
 
 // WebSocket connection handling
-// maybe sth is missing
 io.on('connection', (socket) => {
   handleSocketConnection(socket, io);
 });
 
+// loader
+const [stations, shapes, trips] = await Promise.all(
+  [getStations(), getShapes(), getTrips()]
+);
+const loader = new LinearReferenceLoader();
+await loader.initialize(stations, shapes, trips);
 
+// linear reference engine
+const engine = new LinearReferenceEngine(loader);
+
+// arrival detector
+const arrivalDetector = new ArrivalDetector(loader, engine);
+
+// inject detector into train service
+configureTrainService({ detector: arrivalDetector });
 
 // the server listens to the port 3000, it there is no .env info, it uses 3000
 // added 0.0.0.0 to allow connections from outside the container
