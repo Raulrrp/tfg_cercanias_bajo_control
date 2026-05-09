@@ -88,7 +88,7 @@ export class LinearReferenceEngine {
      * - If |train dist to final| < |stop dist to final|: PASSED (train is closer to end)
      * - Else: APPROACHING (stop is closer to end)
      */
-    determineStopStatus(trainDistanceToFinalKm, stopDistanceToFinalKm, toleranceKm = 0.2) {
+    determineStopStatus(trainDistanceToFinalKm, stopDistanceToFinalKm, toleranceKm) {
         const trainAbsDist = Math.abs(trainDistanceToFinalKm);
         const stopAbsDist = Math.abs(stopDistanceToFinalKm);
         const absDiff = Math.abs(trainAbsDist - stopAbsDist);
