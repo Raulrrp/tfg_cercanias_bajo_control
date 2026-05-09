@@ -1,10 +1,11 @@
 // loads periodcally and coordinatedly trains and updates
 
 import { useEffect, useRef, useState } from 'react';
-import { fetchTrains } from '../services/train-service.js';
-import { fetchUpdates } from '../services/update-service.js';
+import { io } from 'socket.io-client';
+import { TrainPos } from '@tfg_cercanias_bajo_control/common/models/TrainPos.js';
+import { Update } from '@tfg_cercanias_bajo_control/common/models/Update.js';
 
-const REFRESH_INTERVAL_MS = 20000;
+const DEFAULT_SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const useRealtimeSnapshot = () => {
   const [trains, setTrains] = useState([]);
@@ -13,42 +14,74 @@ export const useRealtimeSnapshot = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
   const isMountedRef = useRef(true);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    const loadSnapshot = async () => {
+    // Determine socket URL: explicit VITE_SOCKET_URL > derive origin from VITE_API_URL > window.location.origin
+    let socketUrl = import.meta.env.VITE_SOCKET_URL;
+    if (!socketUrl) {
       try {
-        const [liveTrains, liveUpdates] = await Promise.all([
-          fetchTrains(),
-          fetchUpdates()
-        ]);
-
-        if (!isMountedRef.current) return;
-
-        setTrains(liveTrains);
-        setUpdates(liveUpdates);
-        setError(null);
-        setLastUpdatedAt(new Date());
+        const api = import.meta.env.VITE_API_URL;
+        socketUrl = api ? new URL(api).origin : DEFAULT_SOCKET_URL;
       } catch (err) {
-        if (!isMountedRef.current) return;
-        setError(err.message);
-      } finally {
-        if (isMountedRef.current) {
-          setLoading(false);
-        }
+        socketUrl = DEFAULT_SOCKET_URL;
+      }
+    }
+
+    const socket = io(socketUrl, { transports: ['websocket', 'polling'] });
+    socketRef.current = socket;
+
+    const handleTrains = (data) => {
+      if (!isMountedRef.current) return;
+      try {
+        const mapped = (data || []).map((j) => TrainPos.fromJson(j));
+        setTrains(mapped);
+        setLastUpdatedAt(new Date());
+        setLoading(false);
+        setError(null);
+      } catch (err) {
+        setError(String(err));
       }
     };
 
-    // First immediate synced load.
-    loadSnapshot();
+    const handleUpdates = (data) => {
+      if (!isMountedRef.current) return;
+      try {
+        const mapped = (data || []).map((j) => Update.fromJson(j));
+        setUpdates(mapped);
+        setLastUpdatedAt(new Date());
+        setLoading(false);
+        setError(null);
+      } catch (err) {
+        setError(String(err));
+      }
+    };
 
-    // Keep both feeds aligned in the same refresh tick.
-    const intervalId = setInterval(loadSnapshot, REFRESH_INTERVAL_MS);
+    const handleError = (err) => {
+      if (!isMountedRef.current) return;
+      setError(err?.message || String(err));
+      setLoading(false);
+    };
 
+    socket.on('connect_error', handleError);
+    socket.on('connect', () => {
+      // nothing special
+    });
+    socket.on('trains_update', handleTrains);
+    socket.on('updates_update', handleUpdates);
+
+    // cleanup
     return () => {
       isMountedRef.current = false;
-      clearInterval(intervalId);
+      if (socketRef.current) {
+        socketRef.current.off('trains_update', handleTrains);
+        socketRef.current.off('updates_update', handleUpdates);
+        socketRef.current.off('connect_error', handleError);
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     };
   }, []);
 
