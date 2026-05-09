@@ -1,5 +1,6 @@
 import { TrainPos } from '@tfg_cercanias_bajo_control/common/models/TrainPos.js';
 
+const TOLERANCE = 0.1;
 /**
  * Service that detects train arrival status at a given stop
  * Orchestrates linear reference loader (domain objects) and engine (geometry) 
@@ -70,10 +71,10 @@ export class ArrivalDetector {
         const lastStopProj = this.engine.getStopDistanceAlongRoute(tripId, lastStop.stopId, lineString);
         if (!firstStopProj || !lastStopProj) return null;
 
-        // Si la distancia del último es menor que la del primero, la geometría está invertida
+        // If the distance of the last one is smaller than the first one, the geometry is inverted
         const signFactor = (lastStopProj.distanceAlongLine - firstStopProj.distanceAlongLine) >= 0 ? 1 : -1;
 
-        // Aplicar factor de signo consistente a las proyecciones (ahora todas crecen en sentido del viaje)
+        // Apply the signFactor to the projections (now every projection increases in the trip direction)
         const finalDistPos = signFactor * finalStopProjection.distanceAlongLine;
         const vehicleDist = signFactor * vehicleProjection.distanceAlongLine;
 
@@ -85,7 +86,7 @@ export class ArrivalDetector {
             })
             .filter(Boolean);
 
-        // Parada más cercana (en valor absoluto de distancia respecto a la posición del vehículo)
+        // Nearest stop
         const nearestStopObj = stopsWithDist.reduce((nearest, stop) => {
             if (nearest === null) return stop;
             const currentDelta = Math.abs(stop.distance - vehicleDist);
@@ -95,7 +96,7 @@ export class ArrivalDetector {
 
         const nearestDeltaKm = nearestStopObj ? Math.abs(nearestStopObj.distance - vehicleDist) : Infinity;
 
-        // Próxima parada por delante en el sentido del viaje
+        // Next stop ahead
         const nextStopAheadObj = stopsWithDist
             .filter((stop) => stop.distance > vehicleDist)
             .reduce((closestAhead, stop) => {
@@ -103,7 +104,7 @@ export class ArrivalDetector {
                 return stop.distance < closestAhead.distance ? stop : closestAhead;
             }, null);
 
-        const computedNextStopId = nearestDeltaKm <= 0.2
+        const computedNextStopId = nearestDeltaKm <= TOLERANCE
             ? nearestStopObj.entry.stopId
             : (nextStopAheadObj ? nextStopAheadObj.entry.stopId : finalStopTimeEntry.stopId);
 
@@ -116,10 +117,10 @@ export class ArrivalDetector {
         const trainDistanceToFinal = finalDistPos - vehicleDist;
         const computedStopDistToFinal = finalDistPos - computedStopDist;
 
-        // Determine corrected status with a 200m stop tolerance.
-        let correctedStatus = nearestDeltaKm <= 0.2
+        // Determine corrected status with a 100m stop tolerance.
+        let correctedStatus = nearestDeltaKm <= TOLERANCE
             ? 'STOPPED_AT'
-            : this.engine.determineStopStatus(trainDistanceToFinal, computedStopDistToFinal);
+            : this.engine.determineStopStatus(trainDistanceToFinal, computedStopDistToFinal, TOLERANCE);
         if (correctedStatus === 'PASSED') correctedStatus = 'IN_TRANSIT_TO';
 
         const correctedNextStationId = computedNextStopId;
