@@ -55,7 +55,28 @@ export const fetchStopTimes = async () => {
 export const fetchStopTimesByStopId = async (stopId) => {
   try {
     const allStopTimes = await fetchStopTimes();
-    return allStopTimes.filter(st => st.stopId == stopId);
+    const filtered = allStopTimes.filter(st => st.stopId == stopId);
+
+    // Helper: parse GTFS time (HH:MM:SS) into seconds since midnight
+    // GTFS allows hours >= 24 for times after midnight (e.g., 25:10:00)
+    const parseTimeToSeconds = (timeStr) => {
+      if (!timeStr) return Number.POSITIVE_INFINITY;
+      const parts = String(timeStr).split(':');
+      if (parts.length < 2) return Number.POSITIVE_INFINITY;
+      const h = parseInt(parts[0], 10) || 0;
+      const m = parseInt(parts[1], 10) || 0;
+      const s = parseInt(parts[2], 10) || 0;
+      return h * 3600 + m * 60 + s;
+    };
+
+    // Sort by arrivalTime (ascending). If arrivalTime is missing, fallback to departureTime.
+    filtered.sort((a, b) => {
+      const aTime = parseTimeToSeconds(a.arrivalTime || a.departureTime);
+      const bTime = parseTimeToSeconds(b.arrivalTime || b.departureTime);
+      return aTime - bTime;
+    });
+
+    return filtered;
   } catch (error) {
     console.error(`Error fetching stop times for stop_id ${stopId}:`, error);
     throw error;
