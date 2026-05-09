@@ -19,8 +19,7 @@ import lineRoutes from './routes/line-routes.js';
 import urbanZonesRoutes from './routes/urban-zones-routes.js';
 
 // Logic and Controller imports for real-time tracking
-import * as TrainService from './services/train-service.js';
-import { handleSocketConnection } from './controllers/train-controller.js';
+import { handleSocketConnection } from './controllers/realtime-controller.js';
 
 // reads the .env file to read variables
 dotenv.config();
@@ -28,9 +27,12 @@ const app = express();
 
 // Create the HTTP server to allow Express and WebSockets to share the same port
 // WHATCHOUT: origin: "*" is not recommended for prod
+// hardcoding urls is not the best practice
 const httpServer = createServer(app); 
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN;
+
 const io = new Server(httpServer, {
-  cors: { origin: "http://localhost:5173" }
+  cors: { origin: CLIENT_ORIGIN }
 });
 
 // Middlewares
@@ -60,12 +62,12 @@ app.get('/', (req, res) => {
 });
 
 // WebSocket connection handling
+// maybe sth is missing
 io.on('connection', (socket) => {
-  handleSocketConnection(socket);
+  handleSocketConnection(socket, io);
 });
 
-// Start the real-time background service
-TrainService.initTrainTracking(io);
+
 
 // the server listens to the port 3000, it there is no .env info, it uses 3000
 // added 0.0.0.0 to allow connections from outside the container
