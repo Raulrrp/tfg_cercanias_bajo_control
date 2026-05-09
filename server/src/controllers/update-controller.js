@@ -1,5 +1,6 @@
 import * as UpdateService from '../services/update-service.js';
 
+// currently unused
 export const getUpdates = async (req, res) => {
     try {
         const updates = await UpdateService.getUpdates();
