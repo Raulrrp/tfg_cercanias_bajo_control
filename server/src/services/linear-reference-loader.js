@@ -1,10 +1,5 @@
 import * as turf from '@turf/turf';
-import fs from 'fs/promises';
-import path from 'path';
-import url from 'url';
-import { parse } from 'csv-parse/sync';
-
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+import { fetchStopTimes } from '../data/files/stop-times-repo.js';
 
 /**
  * Service that indexes domain objects and builds data structures for linear referencing
@@ -16,7 +11,7 @@ export class LinearReferenceLoader {
         this.stationsByIdMap = new Map();      // station.id -> Station domain object
         this.shapesByIdMap = new Map();        // shape.id -> Shape domain object
         this.tripsById = new Map();            // trip.id -> Trip domain object
-        this.stopTimesByTripId = new Map();    // trip.id -> [{ stopId, stopSequence, shapeDistTraveled }, ...]
+        this.stopTimesByTripId = new Map();    // trip.id -> [StopTime domain object, ...]
         this.routeGeometries = new Map();      // shape.id -> turf LineString
     }
 
@@ -45,7 +40,7 @@ export class LinearReferenceLoader {
             });
             console.log(`Indexed ${this.tripsById.size} trips.`);
 
-            // Load stop_times separately (raw CSV data, as no domain model exists yet)
+            // Load stop_times as StopTime domain objects from repo
             await this.loadStopTimes();
 
             // Build route geometries from Shape domain objects
@@ -59,32 +54,21 @@ export class LinearReferenceLoader {
     }
 
     /**
-     * Load stop_times.txt and index by trip_id
-     * Returns: trip_id -> [{ stopId, stopSequence, shapeDistTraveled }, ...]
+     * Load stop_times from the repo and index by trip_id
+     * Returns: trip_id -> [StopTime domain object, ...]
      */
     async loadStopTimes() {
         try {
-            console.log('Loading stop_times.txt...');
-            const stopTimesPath = path.resolve(__dirname, '../../data_files/stop_times.txt');
-            const content = await fs.readFile(stopTimesPath, 'utf-8');
+            console.log('Loading stop_times from repo...');
+            const stopTimes = await fetchStopTimes();
             
-            const records = parse(content, {
-                columns: true,
-                skip_empty_lines: true,
-                trim: true,
-            });
-
-            records.forEach((record) => {
-                const tripId = record.trip_id;
+            stopTimes.forEach((stopTime) => {
+                const tripId = stopTime.tripId;
                 if (!this.stopTimesByTripId.has(tripId)) {
                     this.stopTimesByTripId.set(tripId, []);
                 }
 
-                this.stopTimesByTripId.get(tripId).push({
-                    stopId: record.stop_id,
-                    stopSequence: parseInt(record.stop_sequence, 10),
-                    shapeDistTraveled: record.shape_dist_traveled ? parseFloat(record.shape_dist_traveled) : null,
-                });
+                this.stopTimesByTripId.get(tripId).push(stopTime);
             });
 
             // Sort each trip's stops by sequence
@@ -94,7 +78,7 @@ export class LinearReferenceLoader {
 
             console.log(`Loaded stop_times for ${this.stopTimesByTripId.size} trips.`);
         } catch (err) {
-            console.error('Error loading stop_times.txt:', err.message);
+            console.error('Error loading stop_times:', err.message);
             throw err;
         }
     }
