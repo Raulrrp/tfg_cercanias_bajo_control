@@ -1,4 +1,4 @@
-import { Marker, Popup } from 'react-leaflet';
+import { Marker } from 'react-leaflet';
 import L from 'leaflet';
 
 // Fix para el icono por defecto en Leaflet con Webpack/Vite
@@ -12,15 +12,15 @@ const defaultIcon = L.icon({
   iconAnchor: [12, 41]
 });
 
-const StationMarker = ({ station }) => {
+const StationMarker = ({ station, onClick }) => {
   return (
-    <Marker position={[station.latitude, station.longitude]} icon={defaultIcon}>
-      <Popup>
-        <strong>{station.name}</strong><br />
-        {station.city} ({station.province})<br />
-        <small>{station.address}</small>
-      </Popup>
-    </Marker>
+    <Marker
+      position={[station.latitude, station.longitude]}
+      icon={defaultIcon}
+      eventHandlers={{
+        click: () => onClick && onClick(station)
+      }}
+    />
   );
 };
 
