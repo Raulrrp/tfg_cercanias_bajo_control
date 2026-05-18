@@ -3,6 +3,7 @@
 import { MapContainer, TileLayer, ZoomControl, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback } from 'react';
 
 // hooks & components
 import { useStations } from '../hooks/station-hook.js';
@@ -10,9 +11,40 @@ import { useLines } from '../hooks/line-hook.js';
 import StationMarker from './StationMarker.jsx';
 import PolylinesLayer from './PolylinesLayer.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
+import TimetablePopup from './TimetablePopup.jsx';
 
 const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
+  const [timetableOpen, setTimetableOpen] = useState(false);
+  const [timetableStation, setTimetableStation] = useState(null);
+  const [timetableData, setTimetableData] = useState(null);
+  const [timetableLoading, setTimetableLoading] = useState(false);
+  const [timetableError, setTimetableError] = useState(null);
+
+  const fetchTimetable = useCallback(async (station) => {
+    setTimetableStation(station);
+    setTimetableLoading(true);
+    setTimetableError(null);
+    setTimetableData(null);
+    try {
+    const res = await fetch(`/api/stop-times/stop/${station.id}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setTimetableData(data);
+    } catch (err) {
+      setTimetableError(err.message || 'Failed to load timetable');
+    } finally {
+      setTimetableLoading(false);
+      setTimetableOpen(true);
+    }
+  }, []);
+
+  const closeTimetable = useCallback(() => {
+    setTimetableOpen(false);
+    setTimetableStation(null);
+    setTimetableData(null);
+    setTimetableError(null);
+  }, []);
   const markerRefs = useRef(new Map());
 
   // Follow the selected train
@@ -61,7 +93,7 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
 
       {/* 2. Render Station Markers */}
       {stations.map(st => (
-        <StationMarker key={st.id} station={st} />
+        <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
       ))}
 
       {/* 3. Render Train Positions */}
@@ -101,6 +133,16 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
           </Popup>
         </CircleMarker>
       ))}
+
+        {timetableOpen && (
+          <TimetablePopup
+            station={timetableStation}
+            stopTimes={timetableData}
+            loading={timetableLoading}
+            error={timetableError}
+            onClose={closeTimetable}
+          />
+        )}
     </>
   );
 };
