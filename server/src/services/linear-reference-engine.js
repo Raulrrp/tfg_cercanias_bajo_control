@@ -56,7 +56,7 @@ export class LinearReferenceEngine {
         const stopTimesForTrip = this.loader.getStopTimesForTrip(tripId);
         if (stopTimesForTrip) {
             const stopTimeEntry = stopTimesForTrip.find((st) => st.stopId === stationId);
-            if (stopTimeEntry && stopTimeEntry.shapeDistTraveled !== null) {
+            if (stopTimeEntry && stopTimeEntry.shapeDistTraveled != null) {
                 return {
                     distanceAlongLine: stopTimeEntry.shapeDistTraveled,
                     source: 'shapeDist',
