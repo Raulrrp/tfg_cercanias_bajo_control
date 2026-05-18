@@ -28,7 +28,9 @@ export const fetchStopTimes = async () => {
     });
 
     const stopTimes = records.map((record) => {
-      const [tripId, arrivalTime, departureTime, stopId, stopSequence] = record;
+      // GTFS stop_times.txt format:
+      // trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,shape_dist_traveled
+      const [tripId, arrivalTime, departureTime, stopId, stopSequence, , , , shapeDistTraveled] = record;
 
       return new StopTime({
         tripId,
@@ -36,6 +38,7 @@ export const fetchStopTimes = async () => {
         departureTime,
         stopId,
         stopSequence: parseInt(stopSequence, 10),
+        shapeDistTraveled: shapeDistTraveled ? parseFloat(shapeDistTraveled) : null,
       });
     });
 
