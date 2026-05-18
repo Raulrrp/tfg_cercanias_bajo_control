@@ -7,6 +7,16 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['leaflet-polylineoffset']
   },
+  // During local development, proxy API requests to the backend server
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  },
   test: {
     include: ['test/**/*-test.{js,jsx}'],
     environment: 'jsdom'
