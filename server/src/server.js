@@ -34,7 +34,7 @@ import { getTrips } from './services/trip-service.js';
 // train service configuration
 import { configureTrainService } from './services/train-service.js';
 // Logic and Controller imports for real-time tracking
-import { handleSocketConnection } from './controllers/realtime-controller.js';
+import { handleSocketConnection, startRealtimeController } from './controllers/realtime-controller.js';
 
 
 // reads the .env file to read variables
@@ -99,6 +99,9 @@ const arrivalDetector = new ArrivalDetector(loader, engine);
 
 // inject detector into train service
 configureTrainService({ detector: arrivalDetector });
+
+// start realtime polling for persistence and live emissions
+startRealtimeController(io);
 
 // the server listens to the port 3000, it there is no .env info, it uses 3000
 // added 0.0.0.0 to allow connections from outside the container
