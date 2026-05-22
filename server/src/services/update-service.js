@@ -1,5 +1,5 @@
-import {fetchUpdates} from '@tfg_cercanias_bajo_control/server/src/data/remote/update-repo.js';
-import { fetchTrains } from '@tfg_cercanias_bajo_control/server/src/data/remote/train-repo.js';
+import {fetchUpdates} from '../data/renfe/update-repo.js';
+import { fetchTrains } from '../data/renfe/train-repo.js';
 
 export const getUpdates = async () => {
     return fetchUpdates();
