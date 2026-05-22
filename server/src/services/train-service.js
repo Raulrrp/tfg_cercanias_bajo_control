@@ -1,4 +1,4 @@
-import * as TrainRepo from '../data/remote/train-repo.js';
+import * as TrainRepo from '../data/renfe/train-repo.js';
 
 let arrivalDetector = null;
 
