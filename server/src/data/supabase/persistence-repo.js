@@ -1,12 +1,32 @@
-import {createClient} from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
 
-let supabase;
+let supabase = null;
+
+export const initSupabase = ({ url, key, options } = {}) => {
+    if (supabase) return supabase;
+
+    supabase = createClient(url, key, {
+        realtime: {
+            transport: ws,
+        },
+        ...options,
+    });
+
+    return supabase;
+};
+
+export const getSupabase = () => {
+    if (!supabase) {
+        throw new Error('Supabase not initialized.');
+    }
+
+    return supabase;
+};
 
 export const insertArrival = async (arrival) => {
     try{
-        if(!supabase){
-            throw new Error('Supabase not initialized.');
-        }
+        const supabase = getSupabase();
         const {error} = await supabase.from('arrivals').insert({
             trip_id: arrival.trip_id,
             line_id: arrival.line_id,
@@ -22,18 +42,5 @@ export const insertArrival = async (arrival) => {
         throw error;
     }
     
-}
-
-export const initSupabase = ({url, key, options}) => {
-    // options unused
-    supabase = createClient(
-        url,
-        key
-    );
-    return supabase;
-}
-
-export const getSupabase = () => {
-    return supabase;
 }
 
