@@ -35,7 +35,8 @@ import { getTrips } from './services/trip-service.js';
 import { configureTrainService } from './services/train-service.js';
 // Logic and Controller imports for real-time tracking
 import { handleSocketConnection, startRealtimeController } from './controllers/realtime-controller.js';
-
+// import initSupabase
+import { initSupabase } from './data/supabase/persistence-repo.js';
 
 // reads the .env file to read variables
 dotenv.config();
@@ -99,6 +100,12 @@ const arrivalDetector = new ArrivalDetector(loader, engine);
 
 // inject detector into train service
 configureTrainService({ detector: arrivalDetector });
+
+// initialize supabase client
+initSupabase({
+  url: process.env.SUPABASE_URL,
+  key: process.env.SUPABASE_SERVICE_ROLE_KEY,
+})
 
 // start realtime polling for persistence and live emissions
 startRealtimeController(io);
