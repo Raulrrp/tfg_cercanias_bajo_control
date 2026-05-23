@@ -1,8 +1,8 @@
 export class Arrival{
-    constructor({trip_id, line, urban_zone, last_station, current_station, scheduled_arrival, delay_seconds}){
+    constructor({trip_id, line_id, urban_zone_id, last_station, current_station, scheduled_arrival, delay_seconds}){
         this.trip_id = trip_id;
-        this.line = line;
-        this.urban_zone = urban_zone;
+        this.line_id = line_id;
+        this.urban_zone_id = urban_zone_id;
         this.last_station = last_station;
         this.current_station = current_station;
         this.scheduled_arrival = scheduled_arrival;
@@ -11,8 +11,8 @@ export class Arrival{
     static fromJson(json){
         return new Arrival({
             trip_id: json.trip_id,
-            line: json.line,
-            urban_zone: json.urban_zone,
+            line_id: json.line_id,
+            urban_zone_id: json.urban_zone_id,
             last_station: json.last_station,
             current_station: json.current_station,
             scheduled_arrival: json.scheduled_arrival,
@@ -22,8 +22,8 @@ export class Arrival{
     toJson(){
         return {
             trip_id: this.trip_id,
-            line: this.line,
-            urban_zone: this.urban_zone,
+            line_id: this.line_id,
+            urban_zone_id: this.urban_zone_id,
             current_station: this.current_station,
             scheduled_arrival: this.scheduled_arrival,
             delay_seconds: this.delay_seconds,
