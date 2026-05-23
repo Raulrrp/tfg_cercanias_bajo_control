@@ -1,4 +1,4 @@
-import { readRealtimeTrainsSnapshot } from "../services/realtime-arrival-recorder-service.js";
+import { getRealtimeSnapshot, storeSnapshot } from "../services/realtime-service.js";
 
 // Global interval id and guard
 let readIntervalId = null;
@@ -12,7 +12,7 @@ const readSnapshot = async (io) => {
         if (running) return;
         running = true;
 
-        const { trains, updates } = await readRealtimeTrainsSnapshot();
+        const { trains, updates } = await storeSnapshot();
 
         if (connectedClients > 0) {
             if (trains) {
@@ -36,6 +36,7 @@ export const startRealtimeController = (io) => {
 
     readIntervalId = setInterval(() => {
         void readSnapshot(io);
+
     }, READ_INTERVAL);
 };
 
@@ -45,7 +46,7 @@ export const handleSocketConnection = async (socket, io) => {
 
     // Send immediate snapshot to the connecting socket
     try {
-        const { trains, updates } = await readRealtimeTrainsSnapshot();
+        const { trains, updates } = await getRealtimeSnapshot();
         if (trains) socket.emit('trains_update', trains.map((t) => t.toJson()));
         if (updates) socket.emit('updates_update', updates.map((u) => u.toJson()));
     } catch (err) {
