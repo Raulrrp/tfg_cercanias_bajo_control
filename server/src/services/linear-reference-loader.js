@@ -128,11 +128,11 @@ export class LinearReferenceLoader {
     }
 
     getTrip(tripId) {
-        return this.tripsById.get(tripId);
+        return this.tripsById.get(tripId) ?? this.tripsById.get(String(tripId)) ?? null;
     }
 
     getStopTimesForTrip(tripId) {
-        return this.stopTimesByTripId.get(tripId);
+        return this.stopTimesByTripId.get(tripId) ?? this.stopTimesByTripId.get(String(tripId)) ?? null;
     }
 
     getLineString(shapeId) {
