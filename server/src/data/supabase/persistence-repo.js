@@ -41,8 +41,8 @@ const normalizeScheduledArrival = (scheduledArrival) => {
 
 export const insertArrival = async (arrival) => {
     try{
-        const supabase = getSupabase();
-        const {error} = await supabase.from('arrivals').insert({
+        const client = getSupabase();
+        const {error} = await client.from('arrivals').insert({
             trip_id: arrival.trip_id,
             line_id: arrival.line_id,
             urban_zone_id: arrival.urban_zone_id,
