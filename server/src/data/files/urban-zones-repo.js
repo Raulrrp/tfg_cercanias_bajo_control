@@ -2,8 +2,10 @@ import fs from 'fs/promises';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
 
-// Construct the absolute path starting from the project root (server/)
-const URBAN_ZONES_FILE_PATH = path.join(process.cwd(), 'data_files', 'urban_zones.txt');
+import url from 'url';
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const URBAN_ZONES_FILE_PATH = path.resolve(__dirname, '../../../data_files/urban_zones.txt');
 
 /**
  * Reads the urban_zones.txt file from the local filesystem
