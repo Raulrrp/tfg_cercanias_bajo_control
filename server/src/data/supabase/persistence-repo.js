@@ -42,14 +42,18 @@ const normalizeScheduledArrival = (scheduledArrival) => {
 export const insertArrival = async (arrival) => {
     try{
         const client = getSupabase();
+        if (arrival.train_id == null) {
+            throw new Error('Arrival.train_id is required.');
+        }
+
         const {error} = await client.from('arrivals').insert({
+            train_id: arrival.train_id,
             trip_id: arrival.trip_id,
             line_id: arrival.line_id,
             urban_zone_id: arrival.urban_zone_id,
-            last_station_id: arrival.last_station_id,
-            current_station_id: arrival.current_station_id,
+            current_station_id: arrival.current_station,
             scheduled_arrival: normalizeScheduledArrival(arrival.scheduled_arrival),
-            delay_in_seconds: arrival.delay_in_seconds
+            delay_in_seconds: arrival.delay_seconds
         })
         if(error) throw error;
     }catch (error){
