@@ -4,34 +4,12 @@ import { parse } from 'csv-parse/sync';
 import { Line } from '@tfg_cercanias_bajo_control/common/models/Line.js';
 import { Shape } from '@tfg_cercanias_bajo_control/common/models/Shape.js';
 import { ShapePoint } from '@tfg_cercanias_bajo_control/common/models/ShapePoint.js';
+import { fetchUrbanZones } from './urban-zones-repo.js';
 
 const ROUTES_FILE_PATH = path.join(process.cwd(), 'data_files', 'routes.txt');
 const SHAPES_FILE_PATH = path.join(process.cwd(), 'data_files', 'shapes', 'shapes.txt');
 
 let cachedLines = null;
-
-const URBAN_ZONE_BY_SHAPE_PREFIX = {
-  '70': 'Zaragoza',
-  '62': 'Cantabria',
-  '61': 'San Sebastian',
-  '60': 'Bilbao',
-  '51': 'Cataluna',
-  '41': 'Alicante Murcia',
-  '40': 'Valencia',
-  '32': 'Malaga',
-  '31': 'Cadiz',
-  '30': 'Sevilla',
-  '20': 'Asturias',
-  '10': 'Madrid',
-};
-
-const getUrbanZoneFromShapeId = (shapeId) => {
-  const normalizedShapeId = String(shapeId ?? '').trim();
-  if (!normalizedShapeId) return null;
-
-  const prefix = normalizedShapeId.slice(0, 2);
-  return URBAN_ZONE_BY_SHAPE_PREFIX[prefix] ?? null;
-};
 
 const getLineBounds = (shape) => {
   if (!shape || !Array.isArray(shape.shapePoints) || shape.shapePoints.length === 0) {
@@ -135,28 +113,39 @@ export const fetchLines = async () => {
       shape.shapePoints.sort((a, b) => a.sequence - b.sequence);
     });
 
-    const lines = Array.from(shapeById.values())
-      .map((lineKey) => {
-        const shapeId = String(lineKey.id ?? '').trim();
-        const [urbanZonePrefix, ...nameParts] = shapeId.split('_');
-        const name = nameParts.join('_').trim();
-        if (!urbanZonePrefix || !name) return null;
+    const shapeValues = Array.from(shapeById.values());
+    const linesCollected = [];
 
-        const shape = lineKey;
-        const urbanZone = getUrbanZoneFromShapeId(shapeId) ?? urbanZonePrefix;
-        const bounds = getLineBounds(shape);
+    // Load urban zones from data repo and build a quick lookup by numeric id
+    const urbanZones = await fetchUrbanZones();
+    const urbanZonesMap = new Map(urbanZones.map((z) => [Number(z.id), z.name]));
 
-        return new Line({
-          name,
-          urbanZone,
-          color: lineColorByRouteShortName.get(name) ?? null,
-          shape,
-          minLatitude: bounds?.minLatitude ?? null,
-          maxLatitude: bounds?.maxLatitude ?? null,
-          minLongitude: bounds?.minLongitude ?? null,
-          maxLongitude: bounds?.maxLongitude ?? null,
-        });
-      })
+    for (const lineKey of shapeValues) {
+      const shapeId = String(lineKey.id ?? '').trim();
+      const [urbanZonePrefix, ...nameParts] = shapeId.split('_');
+      const name = nameParts.join('_').trim();
+      if (!urbanZonePrefix || !name) continue;
+
+      const shape = lineKey;
+      const prefixNum = parseInt(String(urbanZonePrefix).slice(0, 2), 10);
+      const urbanZone = (Number.isFinite(prefixNum) && urbanZonesMap.has(prefixNum))
+        ? urbanZonesMap.get(prefixNum)
+        : urbanZonePrefix;
+      const bounds = getLineBounds(shape);
+
+      linesCollected.push(new Line({
+        name,
+        urbanZone,
+        color: lineColorByRouteShortName.get(name) ?? null,
+        shape,
+        minLatitude: bounds?.minLatitude ?? null,
+        maxLatitude: bounds?.maxLatitude ?? null,
+        minLongitude: bounds?.minLongitude ?? null,
+        maxLongitude: bounds?.maxLongitude ?? null,
+      }));
+    }
+
+    const lines = linesCollected
       .filter(Boolean)
       .sort((a, b) => {
         const nameCompare = String(a.name).localeCompare(String(b.name));
