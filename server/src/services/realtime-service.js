@@ -44,10 +44,13 @@ const resolveScheduledArrival = ({ stopTime, referenceTimestamp }) => {
 
 export const buildArrival = ({ train, update, line, station, previousArrival = null, stopTime = null }) => {
     const currentStation = train.nextStationId ?? null;
+    const timestamp = train.timestamp ?? null;
 
-    if (!train?.tripId || !line?.name || !line?.urbanZone || !station?.name || currentStation == null) {
+    if (!train?.tripId || !line?.name || !line?.urbanZone || !station?.name || currentStation == null || timestamp == null) {
         return null;
     }
+
+    const parsedTimestamp = new Date(Number(timestamp) * 1000).toISOString();
 
     return new Arrival({
         train_id: train.train?.id ?? train.id ?? null,
@@ -60,6 +63,8 @@ export const buildArrival = ({ train, update, line, station, previousArrival = n
             referenceTimestamp: train.timestamp,
         }),
         delay_seconds: update?.delay ?? 0,
+        timestamp: parsedTimestamp,
+
     });
 };
 

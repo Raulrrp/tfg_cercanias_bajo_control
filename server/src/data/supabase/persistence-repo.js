@@ -53,7 +53,8 @@ export const insertArrival = async (arrival) => {
             urban_zone_name: arrival.urban_zone_name,
             station_name: arrival.station_name,
             scheduled_arrival: normalizeScheduledArrival(arrival.scheduled_arrival),
-            delay_seconds: arrival.delay_seconds
+            delay_seconds: arrival.delay_seconds,
+            timestamp: normalizeScheduledArrival(arrival.timestamp),
         })
         if(error) throw error;
     }catch (error){
