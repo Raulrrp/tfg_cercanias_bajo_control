@@ -1,9 +1,9 @@
 import { Arrival } from '@tfg_cercanias_bajo_control/common/models/Arrival.js';
 import { getTrains } from './train-service.js';
 import { getUpdates } from './update-service.js';
-import { getTrips } from './trip-service.js';
+import { getLineByTripId } from './trip-service.js';
+import { getStationById } from './station-service.js';
 import { getStopTimeByTripIdAndStopId } from './stop-times-service.js';
-import { getUrbanZonesMap } from './urban-zones-service.js';
 import { storeArrival } from './persistence-service.js';
 
 let lastStoppedTrains = null;
@@ -42,19 +42,19 @@ const resolveScheduledArrival = ({ stopTime, referenceTimestamp }) => {
     return null;
 };
 
-export const buildArrival = ({ train, update, trip, urbanZoneId, previousArrival = null, stopTime = null }) => {
+export const buildArrival = ({ train, update, line, station, previousArrival = null, stopTime = null }) => {
     const currentStation = train.nextStationId ?? null;
 
-    if (!train?.tripId || !trip?.routeId || currentStation == null || urbanZoneId == null) {
+    if (!train?.tripId || !line?.name || !line?.urbanZone || !station?.name || currentStation == null) {
         return null;
     }
 
     return new Arrival({
         train_id: train.train?.id ?? train.id ?? null,
         trip_id: train.tripId,
-        line_id: trip.routeId,
-        urban_zone_id: urbanZoneId,
-        current_station: currentStation,
+        line_id: line.name,
+        urban_zone_id: line.urbanZone,
+        current_station: station.name,
         scheduled_arrival: resolveScheduledArrival({
             stopTime,
             referenceTimestamp: train.timestamp,
@@ -74,13 +74,10 @@ export const shouldStoreStoppedArrival = (previousStoppedTrain, currentTrain) =>
 export const collectStoppedArrivals = async ({
     trains,
     updates,
-    trips,
-    urbanZonesById,
     previousStoppedTrains = null,
     stopTimeResolver = getStopTimeByTripIdAndStopId,
 }) => {
     const updatesByTripId = new Map((updates ?? []).map((update) => [String(update.tripId), update]));
-    const tripsById = new Map((trips ?? []).map((trip) => [String(trip.id), trip]));
     const currentStoppedTrains = new Map();
     const arrivalsToStore = [];
 
@@ -89,22 +86,18 @@ export const collectStoppedArrivals = async ({
             continue;
         }
 
-        const trip = tripsById.get(String(train.tripId));
         const update = updatesByTripId.get(String(train.tripId)) ?? null;
-        const urbanZoneId = (() => {
-            const routeId = String(trip?.routeId ?? '').trim();
-            const numericZoneId = Number.parseInt(routeId.slice(0, 2), 10);
-            return Number.isNaN(numericZoneId) ? null : (urbanZonesById.get(numericZoneId)?.id ?? null);
-        })();
         const currentStation = train.nextStationId ?? update?.nextStationId ?? null;
+        const line = await getLineByTripId(train.tripId);
+        const station = currentStation == null ? null : await getStationById(currentStation);
         const stopTime = currentStation == null
             ? null
             : await stopTimeResolver(train.tripId, currentStation);
         const arrival = buildArrival({
             train,
             update,
-            trip,
-            urbanZoneId,
+            line,
+            station,
             stopTime,
         });
 
@@ -131,18 +124,13 @@ export const storeSnapshot = async () => {
     if (snapshotInFlight) return snapshotInFlight;
 
     snapshotInFlight = (async () => {
-        const [trains, updates, trips] = await Promise.all([
+        const [trains, updates] = await Promise.all([
             getTrains(),
             getUpdates(),
-            getTrips(),
         ]);
-
-        const urbanZonesById = await getUrbanZonesMap();
         const { currentStoppedTrains, arrivalsToStore } = await collectStoppedArrivals({
             trains,
             updates,
-            trips,
-            urbanZonesById,
             previousStoppedTrains: lastStoppedTrains,
         });
 
