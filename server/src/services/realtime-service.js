@@ -52,9 +52,9 @@ export const buildArrival = ({ train, update, line, station, previousArrival = n
     return new Arrival({
         train_id: train.train?.id ?? train.id ?? null,
         trip_id: train.tripId,
-        line_id: line.name,
-        urban_zone_id: line.urbanZone,
-        current_station: station.name,
+        line_name: line.name,
+        urban_zone_name: line.urbanZone,
+        station_name: station.name,
         scheduled_arrival: resolveScheduledArrival({
             stopTime,
             referenceTimestamp: train.timestamp,

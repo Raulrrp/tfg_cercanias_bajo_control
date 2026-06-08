@@ -1,10 +1,10 @@
 export class Arrival{
-    constructor({train_id, trip_id, line_id, urban_zone_id, current_station, scheduled_arrival, delay_seconds}){
+    constructor({train_id, trip_id, line_name, urban_zone_name, station_name, scheduled_arrival, delay_seconds}){
         this.train_id = train_id;
         this.trip_id = trip_id;
-        this.line_id = line_id;
-        this.urban_zone_id = urban_zone_id;
-        this.current_station = current_station;
+        this.line_name = line_name;
+        this.urban_zone_name= urban_zone_name;
+        this.station_name = station_name;
         this.scheduled_arrival = scheduled_arrival;
         this.delay_seconds = delay_seconds;
     }
@@ -12,9 +12,9 @@ export class Arrival{
         return new Arrival({
             train_id: json.train_id,
             trip_id: json.trip_id,
-            line_id: json.line_id,
-            urban_zone_id: json.urban_zone_id,
-            current_station: json.current_station,
+            line_name: json.line_name,
+            urban_zone_name: json.urban_zone_name,
+            station_name: json.station_name,
             scheduled_arrival: json.scheduled_arrival,
             delay_seconds: json.delay_seconds
         })
@@ -23,9 +23,9 @@ export class Arrival{
         return {
             train_id: this.train_id,
             trip_id: this.trip_id,
-            line_id: this.line_id,
-            urban_zone_id: this.urban_zone_id,
-            current_station: this.current_station,
+            line_name: this.line_name,
+            urban_zone_name: this.urban_zone_name,
+            station_name: this.station_name,
             scheduled_arrival: this.scheduled_arrival,
             delay_seconds: this.delay_seconds,
         }

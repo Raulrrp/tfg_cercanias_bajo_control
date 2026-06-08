@@ -49,9 +49,9 @@ export const insertArrival = async (arrival) => {
         const {error} = await client.from('arrivals').insert({
             train_id: arrival.train_id,
             trip_id: arrival.trip_id,
-            line_id: arrival.line_id,
-            urban_zone_id: arrival.urban_zone_id,
-            current_station_id: arrival.current_station,
+            line_name: arrival.line_name,
+            urban_zone_name: arrival.urban_zone_name,
+            station_name: arrival.station_name,
             scheduled_arrival: normalizeScheduledArrival(arrival.scheduled_arrival),
             delay_seconds: arrival.delay_seconds
         })
