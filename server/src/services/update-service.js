@@ -1,17 +1,15 @@
 import {fetchUpdates} from '../data/renfe/update-repo.js';
-import { fetchTrains } from '../data/renfe/train-repo.js';
+import { getTripIdByTrainId } from './train-service.js';
 
 export const getUpdates = async () => {
     return fetchUpdates();
 }
 
 export const getUpdateByTrainId = async (trainId) => {
-    // Train updates are keyed by tripId, so we resolve train id -> tripId first.
-    const trains = await fetchTrains();
-    const train = trains.find(t => String(t.train?.id) === String(trainId));
-    if (!train?.tripId) return null;
+    const tripId = await getTripIdByTrainId(trainId);
+    if (!tripId) return null;
 
-    return getUpdateByTripId(train.tripId);
+    return getUpdateByTripId(tripId);
 }
 
 export const getUpdateByTripId = async (tripId) => {
