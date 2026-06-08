@@ -28,3 +28,17 @@ export const getUrbanZoneById = async (id) => {
   
   return zone;
 };
+
+export const getUrbanZoneNameFromIdentifier = async (identifier) => {
+  if (!identifier) return null;
+  const raw = String(identifier ?? '').trim();
+  if (!raw) return null;
+
+  const prefix = raw.slice(0, 2);
+  const prefixId = parseInt(prefix, 10);
+  if (Number.isNaN(prefixId)) return null;
+
+  const map = await getUrbanZonesMap();
+  const zone = map.get(prefixId) ?? null;
+  return zone ? zone.name : null;
+};
