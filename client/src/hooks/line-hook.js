@@ -23,11 +23,17 @@ export const useLines = () => {
     loadLines();
   }, []);
 
+  const getLinesByZone = (zone) =>{
+    const res = lines.filter((line) => line.urbanZone == zone)
+    return res;
+  }
+
   const getLineByNameAndZone = (name, zone) => {
     return lines.find((line) => line.name === name && line.urbanZone === zone);
   }
 
   return {
+    getLinesByZone,
     getLineByNameAndZone,
     lines,
     error,
