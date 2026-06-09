@@ -25,7 +25,6 @@ export const analysisService = {
     const client = getSupabase();
     const { data, error } = await client.rpc('get_busiest_lines');
     if (error) throw error;
-    console.log(data);
     return data;
   },
 
@@ -34,7 +33,6 @@ export const analysisService = {
     const client = getSupabase();
     const { data, error } = await client.rpc('get_busiest_stations');
     if (error) throw error;
-    console.log(data);
     return data;
   },
 
@@ -43,7 +41,6 @@ export const analysisService = {
     const client = getSupabase();
     const { data, error } = await client.rpc('get_top_lines_by_delay_percentage');
     if (error) throw error;
-    console.log(data);
     return data;
   },
 
@@ -52,7 +49,6 @@ export const analysisService = {
     const client = getSupabase();
     const { data, error } = await client.rpc('get_top_stations_by_delay_percentage');
     if (error) throw error;
-    console.log(data);
     return data;
   },
 
@@ -61,7 +57,6 @@ export const analysisService = {
     const client = getSupabase();
     const { data, error } = await client.rpc('get_top_lines_by_average_delay');
     if (error) throw error;
-    console.log(data);
     return data;
   },
 
@@ -70,7 +65,6 @@ export const analysisService = {
     const client = getSupabase();
     const { data, error } = await client.rpc('get_top_stations_by_average_delay');
     if (error) throw error;
-    console.log(data);
     return data;
   }
 };
