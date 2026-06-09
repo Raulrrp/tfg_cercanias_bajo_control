@@ -10,9 +10,9 @@ import {
   LabelList
 } from 'recharts';
 
-// Extraemos el Tick personalizado del Eje Y (para los iconos con fondo de color)
+// Extract the custom Y-Axis Tick (for icons with colored backgrounds)
 const BadgeYAxisTick = ({ x, y, payload, data }) => {
-  // Buscamos el color correspondiente al punto de datos actual
+  // Find the corresponding color for the current data point
   const dataPoint = data.find(d => d.name === payload.value);
   return (
     <g transform={`translate(${x},${y})`}>
