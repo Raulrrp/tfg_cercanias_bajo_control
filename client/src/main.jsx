@@ -6,10 +6,13 @@ import './index.css'
 // to use the methods inside Home.jsx
 import Home from './pages/Home.jsx'
 
+// temporal import
+import Analysis from './pages/Analysis.jsx';
+
 // app initialization
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {/*looks for App function and executes it*/}
-    <Home />
+    <Analysis />
   </StrictMode>,
 )
