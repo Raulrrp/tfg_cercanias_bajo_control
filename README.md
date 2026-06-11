@@ -4,6 +4,7 @@ gantt
     title Planificación Original del Proyecto
     dateFormat  YYYY-MM-DD
     axisFormat  %d-%b
+    leftPadding 200
     
     section Preparación de datos
     Descarga y limpieza de datos :active, 2026-02-15, 2026-02-22
