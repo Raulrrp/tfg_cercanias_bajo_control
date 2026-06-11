@@ -1,4 +1,5 @@
 # tfg_cercanias_bajo_control
+```mermaid
 gantt
     title Planificación Original del Proyecto
     dateFormat  YYYY-MM-DD
