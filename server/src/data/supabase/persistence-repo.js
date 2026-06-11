@@ -41,11 +41,13 @@ const normalizeScheduledArrival = (scheduledArrival) => {
 
 export const insertArrival = async (arrival) => {
     try{
+        /*
         const client = getSupabase();
         if (arrival.train_id == null) {
             throw new Error('Arrival.train_id is required.');
         }
 
+        
         const {error} = await client.from('arrivals').insert({
             train_id: arrival.train_id,
             trip_id: arrival.trip_id,
@@ -56,7 +58,10 @@ export const insertArrival = async (arrival) => {
             delay_seconds: arrival.delay_seconds,
             timestamp: normalizeScheduledArrival(arrival.timestamp),
         })
+            
         if(error) throw error;
+        */
+
     }catch (error){
         console.error('Error inserting arrivals:', error);
         throw error;

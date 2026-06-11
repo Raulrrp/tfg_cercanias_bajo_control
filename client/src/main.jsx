@@ -13,6 +13,6 @@ import Analysis from './pages/Analysis.jsx';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {/*looks for App function and executes it*/}
-    <Analysis />
+    <Home />
   </StrictMode>,
 )
