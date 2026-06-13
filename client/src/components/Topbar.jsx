@@ -1,5 +1,7 @@
 import React from 'react';
-import { Menu, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+// Importamos los componentes necesarios para la navegación sin recargar la página
+import { Link, useLocation } from 'react-router-dom';
 
 const Topbar = ({ 
   filterMode, 
@@ -12,6 +14,8 @@ const Topbar = ({
   filterOptions = [], 
   urbanZones = [] 
 }) => {
+  //useLocation nos permite saber en qué ruta estamos para iluminar la pestaña correcta
+  const location = useLocation();
 
   const handleModeChange = (e) => onFilterModeChange(e.target.value);
   const handleValueChange = (e) => onFilterValueChange(e.target.value);
@@ -31,15 +35,38 @@ const Topbar = ({
   return (
     <header className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 md:px-8 bg-[#f3f4f6] border-b border-gray-200 text-gray-500 shrink-0">
       
-      {/* Título unificado con la estética de Análisis */}
-      <div className="flex items-center text-gray-500">
-        <Menu className="w-6 h-6 mr-3 cursor-pointer stroke-2" />
-        <h1 className="text-lg md:text-xl font-light text-gray-700 uppercase tracking-wide">
-          Cercanías Bajo Control | Mapa
+      {/* Sección Izquierda: Título y Pestañas de Navegación */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 md:gap-8">
+        <h1 className="text-lg md:text-xl font-light text-gray-700 uppercase tracking-wide whitespace-nowrap">
+          Cercanías Bajo Control
         </h1>
+        
+        {/* Selector de pestañas estilizado */}
+        <nav className="flex bg-gray-200 p-1 rounded-lg text-xs font-medium self-start sm:self-auto">
+          <Link
+            to="/"
+            className={`px-4 py-1.5 rounded-md transition-colors ${
+              location.pathname === '/' 
+                ? 'bg-white text-gray-800 shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Mapa
+          </Link>
+          <Link
+            to="/analysis"
+            className={`px-4 py-1.5 rounded-md transition-colors ${
+              location.pathname === '/analysis' 
+                ? 'bg-white text-gray-800 shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Análisis
+          </Link>
+        </nav>
       </div>
 
-      {/* Contenedor de Filtros Avanzados */}
+      {/* Contenedor de Filtros Avanzados (Se mantienen exactamente igual que tu diseño original) */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <label htmlFor="filter-mode" className="text-xs font-semibold text-gray-500 uppercase tracking-wider">

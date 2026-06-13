@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, ZoomControl, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { AlertCircle } from 'lucide-react';
@@ -10,6 +10,7 @@ import StationMarker from './StationMarker.jsx';
 import PolylinesLayer from './PolylinesLayer.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
 import TimetablePopup from './TimetablePopup.jsx';
+import TrainMarker from './TrainMarker.jsx'; // Importado desde el mismo directorio
 
 const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
@@ -93,9 +94,9 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
         <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
       ))}
 
-      {/* 3. Dibujar posiciones de trenes en tiempo real */}
+      {/* 3. Dibujar posiciones de trenes en tiempo real usando TrainMarker */}
       {trains.map(train => (
-        <CircleMarker
+        <TrainMarker
           key={train.id}
           ref={(marker) => {
             if (marker) {
@@ -104,37 +105,24 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
               markerRefs.current.delete(train.id);
             }
           }}
-          center={[train.latitude, train.longitude]}
-          radius={7}
-          // Colores adaptados a la estética de Análisis (#4f8bc9) con borde blanco limpio
-          pathOptions={{ 
-            color: '#ffffff', 
-            fillColor: '#4f8bc9', 
-            fillOpacity: 1, 
-            weight: 1.5 
-          }}
-          eventHandlers={{
-            click: () => onTrainSelect(train)
+          train={train}
+          onClick={onTrainSelect}
+          popupEventHandlers={{
+            remove: () => {
+              if (selectedTrain?.id === train.id) {
+                onCloseTrainCard();
+              }
+            }
           }}
         >
-          <Popup
-            eventHandlers={{
-              remove: () => {
-                if (selectedTrain?.id === train.id) {
-                  onCloseTrainCard();
-                }
-              }
-            }}
-          >
-            <TrainInfoCard
-              train={train}
-              nextStopName={getStationById(train.nextStationId)?.name}
-              delay={delayByTripId.get(String(train.tripId))}
-              onClose={onCloseTrainCard}
-              inPopup={true}
-            />
-          </Popup>
-        </CircleMarker>
+          <TrainInfoCard
+            train={train}
+            nextStopName={getStationById(train.nextStationId)?.name}
+            delay={delayByTripId.get(String(train.tripId))}
+            onClose={onCloseTrainCard}
+            inPopup={true}
+          />
+        </TrainMarker>
       ))}
 
       {timetableOpen && (

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Menu, TrainFront, Loader2, AlertCircle } from 'lucide-react';
+import { TrainFront, Loader2, AlertCircle } from 'lucide-react';
+// Importamos los componentes de navegación nativos
+import { Link, useLocation } from 'react-router-dom';
 import HorizontalChartCard from '../components/HorizontalChartCard.jsx';
 import KPICard from '../components/KPICard.jsx';
 import { useAnalysis } from '../hooks/analysis-hook.js';
@@ -7,6 +9,9 @@ import { useLines } from '../hooks/line-hook.js';
 import { useUrbanZones } from '../hooks/urban-zones-hook.js';
 
 const Analysis = () => {
+  // Hook para detectar la ruta actual e iluminar la pestaña activa
+  const location = useLocation();
+
   // Extract state variables from our custom hook
   const { dashboardData, loading, error } = useAnalysis();
 
@@ -18,14 +23,12 @@ const Analysis = () => {
   const { zones, getUrbanZoneByName } = useUrbanZones();
 
   // Handler to update the selected zone and reset the line.
-  // We no longer manually calculate lines here; React will do it automatically on render.
   const handleStationUrbanZoneFilter = (urbanZoneName) => {
     setStationUrbanZoneFilter(urbanZoneName);
     setStationLineFilter('');
   }
 
   // Derived state: calculate filtered lines dynamically based on the current state.
-  // This replaces the global 'let lines = [];' which was causing the issue.
   let filteredLines = [];
   if (stationUrbanZoneFilter !== '') {
       filteredLines = getLinesByZone(stationUrbanZoneFilter);
@@ -54,10 +57,35 @@ const Analysis = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f6] p-4 md:p-8 font-sans">
       
-      {/* Header section */}
-      <header className="flex items-center mb-6 text-gray-500">
-        <Menu className="w-6 h-6 mr-3 cursor-pointer stroke-2" />
-        <h1 className="text-xl md:text-2xl font-light text-gray-700 uppercase tracking-wide">Cercanías Bajo Control | Análisis</h1>
+      {/* Header section: Estructura idéntica a la Topbar con el navegador integrado */}
+      <header className="w-full flex flex-col sm:flex-row sm:items-center gap-4 md:gap-8 mb-6 shrink-0">
+        <h1 className="text-lg md:text-xl font-light text-gray-700 uppercase tracking-wide whitespace-nowrap">
+          Cercanías Bajo Control
+        </h1>
+        
+        {/* Selector de pestañas idéntico al de la barra de navegación del mapa */}
+        <nav className="flex bg-gray-200 p-1 rounded-lg text-xs font-medium self-start sm:self-auto">
+          <Link
+            to="/"
+            className={`px-4 py-1.5 rounded-md transition-colors ${
+              location.pathname === '/' 
+                ? 'bg-white text-gray-800 shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Mapa
+          </Link>
+          <Link
+            to="/analysis"
+            className={`px-4 py-1.5 rounded-md transition-colors ${
+              location.pathname === '/analysis' 
+                ? 'bg-white text-gray-800 shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Análisis
+          </Link>
+        </nav>
       </header>
 
       {/* Top Row: KPIs */}
@@ -86,7 +114,6 @@ const Analysis = () => {
             className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[200px]"
           >
             <option value="">Todas las zonas</option>
-            {/* Optional chaining (?.) prevents crashes if zones are still loading */}
             {zones?.map((zone) => (
               <option key={zone.id} value={zone.name}>{zone.name}</option>
             ))}
@@ -126,7 +153,6 @@ const Analysis = () => {
         <h2 className="text-sm font-medium text-gray-600 uppercase tracking-wider">Datos Históricos por Estación</h2>
         
         <div className="flex items-center gap-4">
-          {/* We place Urban Zone first, as it conditions the line selection */}
           <div className="flex items-center gap-2">
             <label htmlFor="station-zone" className="text-xs font-semibold text-gray-500 uppercase">Zona Urbana:</label>
             <select
@@ -144,7 +170,6 @@ const Analysis = () => {
             </select>
           </div>
 
-          {/* Line filter ONLY appears if an Urban Zone is selected */}
           {stationUrbanZoneFilter !== '' && (
             <div className="flex items-center gap-2">
               <label htmlFor="station-line" className="text-xs font-semibold text-gray-500 uppercase">Línea:</label>
@@ -155,7 +180,6 @@ const Analysis = () => {
                 className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[150px]"
               >
                 <option value="">Todas las líneas...</option>
-                {/* Notice we map over filteredLines here instead of lines */}
                 {filteredLines?.map((line) => (
                   <option key={line.id} value={line.name}>{line.name}</option>
                 ))}
