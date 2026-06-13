@@ -1,11 +1,9 @@
-// renders MapView and MapComntet
-
 import { MapContainer, TileLayer, ZoomControl, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useMemo, useRef } from 'react';
-import { useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { AlertCircle } from 'lucide-react';
 
-// hooks & components
+// Hooks & Componentes
 import { useStations } from '../hooks/station-hook.js';
 import { useLines } from '../hooks/line-hook.js';
 import StationMarker from './StationMarker.jsx';
@@ -27,12 +25,12 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
     setTimetableError(null);
     setTimetableData(null);
     try {
-    const res = await fetch(`/api/stop-times/stop/${station.id}`);
+      const res = await fetch(`/api/stop-times/stop/${station.id}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setTimetableData(data);
     } catch (err) {
-      setTimetableError(err.message || 'Failed to load timetable');
+      setTimetableError(err.message || 'Error al cargar los horarios');
     } finally {
       setTimetableLoading(false);
       setTimetableOpen(true);
@@ -45,9 +43,10 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
     setTimetableData(null);
     setTimetableError(null);
   }, []);
+
   const markerRefs = useRef(new Map());
 
-  // Follow the selected train
+  // Seguir al tren seleccionado
   useEffect(() => {
     if (!selectedTrain) return;
 
@@ -63,17 +62,15 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
     }
 
     map.setView([liveSelectedTrain.latitude, liveSelectedTrain.longitude], 15);
-  }, [selectedTrain, trains]);
+  }, [selectedTrain, trains, map]);
 
-  // Zoom to station on search (one-time, no follow).
+  // Hacer zoom al objetivo de búsqueda
   useEffect(() => {
     if (!zoomTarget) return;
 
     if (zoomTarget.bounds) {
-      // For line bounds, use fitBounds
       map.fitBounds(zoomTarget.bounds, { padding: [50, 50] });
     } else if (Number.isFinite(zoomTarget.lat) && Number.isFinite(zoomTarget.lng)) {
-      // For single point, use setView
       const targetZoom = Number.isFinite(zoomTarget.zoom) ? zoomTarget.zoom : 15;
       map.setView([zoomTarget.lat, zoomTarget.lng], targetZoom);
     }
@@ -88,15 +85,15 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
       />
       <ZoomControl position="topright" />
 
-      {/* 1. Render Train Lines (Shapes) */}
+      {/* 1. Dibujar líneas de tren */}
       <PolylinesLayer lines={lines} />
 
-      {/* 2. Render Station Markers */}
+      {/* 2. Dibujar estaciones */}
       {stations.map(st => (
         <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
       ))}
 
-      {/* 3. Render Train Positions */}
+      {/* 3. Dibujar posiciones de trenes en tiempo real */}
       {trains.map(train => (
         <CircleMarker
           key={train.id}
@@ -108,8 +105,14 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
             }
           }}
           center={[train.latitude, train.longitude]}
-          radius={6}
-          pathOptions={{ color: '#005f73', fillColor: '#0a9396', fillOpacity: 0.95, weight: 1 }}
+          radius={7}
+          // Colores adaptados a la estética de Análisis (#4f8bc9) con borde blanco limpio
+          pathOptions={{ 
+            color: '#ffffff', 
+            fillColor: '#4f8bc9', 
+            fillOpacity: 1, 
+            weight: 1.5 
+          }}
           eventHandlers={{
             click: () => onTrainSelect(train)
           }}
@@ -134,22 +137,21 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
         </CircleMarker>
       ))}
 
-        {timetableOpen && (
-          <TimetablePopup
-            station={timetableStation}
-            stopTimes={timetableData}
-            loading={timetableLoading}
-            error={timetableError}
-            onClose={closeTimetable}
-          />
-        )}
+      {timetableOpen && (
+        <TimetablePopup
+          station={timetableStation}
+          stopTimes={timetableData}
+          loading={timetableLoading}
+          error={timetableError}
+          onClose={closeTimetable}
+        />
+      )}
     </>
   );
 };
 
 const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
-  // Initial position centered on Madrid
-  const position = [40.4167, -3.7037];
+  const position = [40.4167, -3.7037]; // Madrid por defecto
 
   const { stations, error: stationError } = useStations();
   const { lines, error: lineError } = useLines();
@@ -162,15 +164,21 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
     return map;
   }, [updates]);
 
+  const activeError = stationError || lineError || trainError;
+
   return (
-    <>
-      {(stationError || lineError || trainError) && (
-        <div className="map-error">{stationError || lineError || trainError}</div>
+    <div className="w-full h-full relative font-sans">
+      {activeError && (
+        <div className="absolute top-4 left-4 z-[2000] flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 px-4 py-2.5 rounded-xl shadow-md text-sm font-medium">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{activeError}</span>
+        </div>
       )}
+      
       <MapContainer 
         center={position} 
         zoom={6} 
-        style={{ height: '100%', width: '100%' }}
+        className="w-full h-full"
         zoomControl={false}
       >
         <MapContent 
@@ -186,7 +194,7 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
           onZoomComplete={onZoomComplete}
         />
       </MapContainer>
-    </>
+    </div>
   );
 };
 
