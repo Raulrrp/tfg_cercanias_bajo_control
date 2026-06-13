@@ -1,4 +1,4 @@
-import { fetchStations } from '../data/files/station-repo.js';
+import { fetchStations } from '../data/files/station-repo-txt.js';
 
 let cachedStations = null;
 
