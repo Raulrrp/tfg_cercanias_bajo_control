@@ -1,6 +1,7 @@
 import { TrainPos } from '@tfg_cercanias_bajo_control/common/models/TrainPos.js';
 
-const TOLERANCE = 0.1;
+// average commuter train length
+const TOLERANCE = 0.0593;
 /**
  * Service that detects train arrival status at a given stop
  * Orchestrates linear reference loader (domain objects) and engine (geometry) 
@@ -117,7 +118,7 @@ export class ArrivalDetector {
         const trainDistanceToFinal = finalDistPos - vehicleDist;
         const computedStopDistToFinal = finalDistPos - computedStopDist;
 
-        // Determine corrected status with a 100m stop tolerance.
+        // Determine corrected status with a 59m stop tolerance.
         let correctedStatus = nearestDeltaKm <= TOLERANCE
             ? 'STOPPED_AT'
             : this.engine.determineStopStatus(trainDistanceToFinal, computedStopDistToFinal, TOLERANCE);
