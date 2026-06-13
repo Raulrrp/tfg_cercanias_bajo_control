@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.resolve(__dirname, '../data_files');
 
 const FILES = {
-	REALTIME_SAMPLE: path.resolve(DATA_DIR, 'gtfs_train_samples/train-sample3.json'),
+	REALTIME_SAMPLE: path.resolve(DATA_DIR, 'gtfs_train_samples/train-sample4.json'),
 };
 
 function formatStatus(status) {
@@ -104,8 +104,10 @@ async function main() {
 				{ latitude: vehicle.latitude, longitude: vehicle.longitude },
 				lineString
 			);
-			const rawStopProjection = engine.getStopDistanceAlongRoute(vehicle.tripId, vehicle.nextStationId, lineString);
-			const finalStopProjection = engine.getStopDistanceAlongRoute(vehicle.tripId, finalStopTimeEntry.stopId, lineString);
+			const rawStopProjection = engine.getStopDistanceAlongRoute(vehicle.tripId,
+																vehicle.nextStationId, lineString);
+			const finalStopProjection = engine.getStopDistanceAlongRoute(vehicle.tripId,
+															 finalStopTimeEntry.stopId, lineString);
 
 			if (!vehicleProjection || !rawStopProjection || !finalStopProjection) return;
 
@@ -116,7 +118,7 @@ async function main() {
 			const trainToFinalStr = trainToFinalKm.toFixed(3);
 
 			console.log(
-				`${String(rawTrainId).padEnd(12)} | ${String(vehicle.nextStationId).padEnd(18)} | ${String(formatStatus(vehicle.status)).padEnd(16)} | ${stopToFinalStr.padStart(15)} | ${trainToFinalStr.padStart(16)} | ${String(correctedStop).padEnd(18)} | ${correctedStatus}`
+				`${String(rawTrainId).padEnd(12)} | ${String(vehicle.nextStationId).padEnd(18)}	| ${String(formatStatus(vehicle.status)).padEnd(16)} | ${stopToFinalStr.padStart(15)} | ${trainToFinalStr.padStart(16)} | ${String(correctedStop).padEnd(18)} | ${correctedStatus}`
 			);
 		});
 
