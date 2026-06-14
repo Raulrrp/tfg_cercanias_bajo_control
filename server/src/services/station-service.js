@@ -8,7 +8,7 @@ const nearestPointOnLine = nearestPointOnLinePkg.default || nearestPointOnLinePk
 
 let cachedStations = null;
 
-const filterAndSnapStations = (stations, shapes, maxDistanceMeters = 50) => {
+export const filterAndSnapStations = (stations, shapes, maxDistanceMeters = 50) => {
   const maxDistanceKm = maxDistanceMeters / 1000;
   // Margen de seguridad en grados (~0.01 grados equivale a poco más de 1km)
   // Si la estación no está ni a 1km del rectángulo de la vía, ni calculamos su snap.
