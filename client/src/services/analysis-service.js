@@ -1,9 +1,10 @@
+// services/analysis-service.js
 import { createClient } from '@supabase/supabase-js';
 
 // Singleton instance
 let supabase = null;
 
-// Internal function to get or initialize the Supabase client
+// Initialize Supabase client
 const getSupabase = () => {
     if (!supabase) {
         const url = import.meta.env.VITE_SUPABASE_URL;
@@ -20,50 +21,71 @@ const getSupabase = () => {
 };
 
 export const analysisService = {
-  // Fetch the top 5 busiest lines
-  getBusiestLines: async () => {
+  // Fetch top 5 busiest lines
+  getBusiestLines: async (urbanZone) => {
     const client = getSupabase();
-    const { data, error } = await client.rpc('get_busiest_lines');
+    const params = {};
+    if (urbanZone) params.target_zona = urbanZone;
+    
+    const { data, error } = await client.rpc('get_busiest_lines', params);
     if (error) throw error;
     return data;
   },
 
-  // Fetch the top 5 busiest stations
-  getBusiestStations: async () => {
+  // Fetch top 5 busiest stations
+  getBusiestStations: async (urbanZone, lineName) => {
     const client = getSupabase();
-    const { data, error } = await client.rpc('get_busiest_stations');
+    const params = {};
+    if (urbanZone) params.target_zona = urbanZone;
+    if (lineName) params.target_line = lineName;
+    
+    const { data, error } = await client.rpc('get_busiest_stations', params);
     if (error) throw error;
     return data;
   },
 
-  // Fetch lines with the highest percentage of delays (0-100)
-  getTopLinesByDelayPercentage: async () => {
+  // Fetch lines with highest delay percentage
+  getTopLinesByDelayPercentage: async (urbanZone) => {
     const client = getSupabase();
-    const { data, error } = await client.rpc('get_top_lines_by_delay_percentage');
+    const params = {};
+    if (urbanZone) params.target_zona = urbanZone;
+    
+    const { data, error } = await client.rpc('get_top_lines_by_delay_percentage', params);
     if (error) throw error;
     return data;
   },
 
-  // Fetch stations with the highest percentage of delays (0-100)
-  getTopStationsByDelayPercentage: async () => {
+  // Fetch stations with highest delay percentage
+  getTopStationsByDelayPercentage: async (urbanZone, lineName) => {
     const client = getSupabase();
-    const { data, error } = await client.rpc('get_top_stations_by_delay_percentage');
+    const params = {};
+    if (urbanZone) params.target_zona = urbanZone;
+    if (lineName) params.target_line = lineName;
+    
+    const { data, error } = await client.rpc('get_top_stations_by_delay_percentage', params);
     if (error) throw error;
     return data;
   },
 
-  // Fetch lines with the highest average delay
-  getTopLinesByAverageDelay: async () => {
+  // Fetch lines with highest average delay
+  getTopLinesByAverageDelay: async (urbanZone) => {
     const client = getSupabase();
-    const { data, error } = await client.rpc('get_top_lines_by_average_delay');
+    const params = {};
+    if (urbanZone) params.target_zona = urbanZone;
+    
+    const { data, error } = await client.rpc('get_top_lines_by_average_delay', params);
     if (error) throw error;
     return data;
   },
 
-  // Fetch stations with the highest average delay
-  getTopStationsByAverageDelay: async () => {
+  // Fetch stations with highest average delay
+  getTopStationsByAverageDelay: async (urbanZone, lineName) => {
     const client = getSupabase();
-    const { data, error } = await client.rpc('get_top_stations_by_average_delay');
+    const params = {};
+    if (urbanZone) params.target_zona = urbanZone;
+    if (lineName) params.target_line = lineName;
+    
+    const { data, error } = await client.rpc('get_top_stations_by_average_delay', params);
     if (error) throw error;
     return data;
   }
