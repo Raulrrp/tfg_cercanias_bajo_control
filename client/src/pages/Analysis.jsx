@@ -1,44 +1,41 @@
-// views/Analysis.jsx
 import React, { useState } from 'react';
 import { TrainFront, Loader2, AlertCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import HorizontalChartCard from '../components/HorizontalChartCard.jsx';
 import KPICard from '../components/KPICard.jsx';
 import { useAnalysis } from '../hooks/analysis-hook.js';
-import { useLines } from '../hooks/line-hook.js';
-import { useUrbanZones } from '../hooks/urban-zones-hook.js';
+import { useGlobalData } from '../context/DataContext.jsx';
 
 const Analysis = () => {
-  // Detect current route for active tab illumination
   const location = useLocation();
 
   const [lineUrbanZoneFilter, setLineUrbanZoneFilter] = useState('');
   const [stationLineFilter, setStationLineFilter] = useState('');
   const [stationUrbanZoneFilter, setStationUrbanZoneFilter] = useState('');
 
-  // Extract state variables from custom hook and pass filter states
+  // Pull shared methods and lines/zones definitions from context instead of re-instantiating hooks
+  const { 
+    lineHelpers: { getLinesByZone }, 
+    zoneHelpers: { zones } 
+  } = useGlobalData();
+
+  // Execute analytical fetch based on reactive filter controls local to this dashboard view
   const { dashboardData, loading, error } = useAnalysis(
     lineUrbanZoneFilter, 
     stationUrbanZoneFilter, 
     stationLineFilter
   );
   
-  const { getLinesByZone } = useLines();
-  const { zones, getUrbanZoneByName } = useUrbanZones();
-
-  // Handler to update selected zone and reset line
   const handleStationUrbanZoneFilter = (urbanZoneName) => {
     setStationUrbanZoneFilter(urbanZoneName);
     setStationLineFilter('');
-  }
+  };
 
-  // Calculate filtered lines dynamically
   let filteredLines = [];
   if (stationUrbanZoneFilter !== '') {
       filteredLines = getLinesByZone(stationUrbanZoneFilter);
   }
 
-  // Show loading spinner while fetching data
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f3f4f6] flex flex-col items-center justify-center">
@@ -48,7 +45,6 @@ const Analysis = () => {
     );
   }
 
-  // Show error message if request fails
   if (error) {
     return (
       <div className="min-h-screen bg-[#f3f4f6] flex flex-col items-center justify-center text-red-500">
