@@ -10,17 +10,53 @@ import {
   LabelList
 } from 'recharts';
 
-// Extract the custom Y-Axis Tick (for icons with colored backgrounds)
-const BadgeYAxisTick = ({ x, y, payload, data }) => {
-  // Find the corresponding color for the current data point
-  const dataPoint = data.find(d => d.name === payload.value);
+const MultiLineTick = ({ x, y, payload, maxTextWidth }) => {
+  const text = payload.value || '';
+  const maxLineChars = Math.floor(maxTextWidth / 7);
+  
+  // Single-line English comment: Force split by character if the string contains no spaces and exceeds line limit
+  let line1 = '';
+  let line2 = '';
+
+  if (!text.includes(' ') && text.length > maxLineChars) {
+    line1 = text.substring(0, maxLineChars);
+    line2 = text.substring(maxLineChars);
+  } else {
+    const words = text.split(' ');
+    for (let i = 0; i < words.length; i++) {
+      if ((line1 + words[i]).length <= maxLineChars && line2 === '') {
+        line1 += (line1 ? ' ' : '') + words[i];
+      } else {
+        line2 += (line2 ? ' ' : '') + words[i];
+      }
+    }
+  }
+
+  // Single-line English comment: Truncate lines with ellipsis if they still exceed the safety character limit
+  if (line1.length > maxLineChars + 3) {
+    line1 = line1.substring(0, maxLineChars) + '...';
+  }
+  if (line2.length > maxLineChars + 3) {
+    line2 = line2.substring(0, maxLineChars) + '...';
+  }
+
+  // Single-line English comment: Render SVG text with single or double tspan elements aligned to the right
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={-45} y={4} fill="#333" textAnchor="end" fontSize={12}>{payload.value}</text>
-      {dataPoint && (
-        <rect x={-32} y={-9} width={18} height={18} fill={dataPoint.color} rx={2} />
+      {line2 ? (
+        <>
+          <text x={-10} y={-4} fill="#374151" fontSize={10} textAnchor="end">
+            {line1}
+          </text>
+          <text x={-10} y={8} fill="#374151" fontSize={10} textAnchor="end">
+            {line2}
+          </text>
+        </>
+      ) : (
+        <text x={-10} y={4} fill="#374151" fontSize={11} textAnchor="end">
+          {line1}
+        </text>
       )}
-      <text x={-23} y={4} fill="#fff" textAnchor="middle" fontSize={11} fontWeight="bold">C</text>
     </g>
   );
 };
@@ -32,15 +68,23 @@ const HorizontalChartCard = ({
   labelKey, 
   xDomain, 
   xTicks, 
-  xFormatter, 
-  showBadges = false 
+  xFormatter 
 }) => {
+  // Single-line English comment: Calculate dynamic width for YAxis based on the maximum text length in data
+  const maxTextLength = data && data.length > 0 
+    ? Math.max(...data.map(d => (d.name || '').length)) 
+    : 0;
+  
+  // Single-line English comment: Increased maximum width allocation to give long text more physical rendering space
+  const calculatedWidth = Math.min(Math.max(maxTextLength * 7.5, 50), 180);
+
+  // Single-line English comment: Render layout passing calculated dimensions and custom multi-line tick component
   return (
     <div className="bg-white p-3 rounded-lg shadow-[0_2px_8px_-4px_rgba(0,0,0,0.1)] border border-gray-100 flex flex-col h-64">
       <h3 className="text-[13px] font-medium text-gray-800 mb-3">{title}</h3>
       <div className="flex-grow w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ top: 0, right: 35, left: showBadges ? 20 : 0, bottom: 15 }}>
+          <BarChart data={data} layout="vertical" margin={{ top: 0, right: 35, left: 0, bottom: 15 }}>
             <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} stroke="#e5e7eb" />
             
             <XAxis 
@@ -58,8 +102,8 @@ const HorizontalChartCard = ({
               dataKey="name" 
               axisLine={false} 
               tickLine={false} 
-              tick={showBadges ? <BadgeYAxisTick data={data} /> : { fontSize: 12, fill: '#374151' }} 
-              width={40} 
+              tick={<MultiLineTick maxTextWidth={calculatedWidth} />} 
+              width={calculatedWidth} 
             />
             
             <Bar dataKey={dataKey} barSize={16}>
