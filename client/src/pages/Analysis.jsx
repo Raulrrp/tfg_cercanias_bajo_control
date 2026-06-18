@@ -19,15 +19,17 @@ const Analysis = () => {
     zoneHelpers: { zones } 
   } = useGlobalData();
 
-  // Execute analytical fetch based on reactive filter controls local to this dashboard view
+  // useAnalysis needs the value of the filters to get the info
+  // dashboardData gets the info
   const { dashboardData, loading, error } = useAnalysis(
     lineUrbanZoneFilter, 
     stationUrbanZoneFilter, 
     stationLineFilter
   );
   
-  const handleStationUrbanZoneFilter = (urbanZoneName) => {
+  const handleBothUrbanZoneFilters = (urbanZoneName) => {
     setStationUrbanZoneFilter(urbanZoneName);
+    setLineUrbanZoneFilter(urbanZoneName);
     setStationLineFilter('');
   };
 
@@ -105,7 +107,10 @@ const Analysis = () => {
           <select
             id="line-zone"
             value={lineUrbanZoneFilter}
-            onChange={(e) => setLineUrbanZoneFilter(e.target.value)}
+            
+            onChange={(e) => {
+              handleBothUrbanZoneFilters(e.target.value)
+            }}
             className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[200px]"
           >
             <option value="">Todas las zonas</option>
@@ -152,7 +157,7 @@ const Analysis = () => {
               id="station-zone"
               value={stationUrbanZoneFilter}
               onChange={(e) => {
-                handleStationUrbanZoneFilter(e.target.value);
+                handleBothUrbanZoneFilters(e.target.value);
               }}
               className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[200px]"
             >
