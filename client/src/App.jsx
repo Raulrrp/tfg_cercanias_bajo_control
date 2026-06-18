@@ -5,6 +5,9 @@ import Analysis from './pages/Analysis.jsx';
 
 function App() {
   return (
+    // when refreshing don't go back to / and 
+    // you can go back using browser back arrows
+    // you can share the url directly to the analysis page
     <DataProvider>
       <BrowserRouter>
         <Routes>
