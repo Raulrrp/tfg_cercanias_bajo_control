@@ -16,7 +16,8 @@ const Analysis = () => {
   // Pull shared methods and lines/zones definitions from context instead of re-instantiating hooks
   const { 
     lineHelpers: { getLinesByZone }, 
-    zoneHelpers: { zones } 
+    zoneHelpers: { zones },
+    trainCount,
   } = useGlobalData();
 
   // useAnalysis needs the value of the filters to get the info
@@ -88,7 +89,7 @@ const Analysis = () => {
       </header>
 
       <div className="grid grid-cols-2 gap-4 md:gap-6 mb-6">
-        <KPICard title="Trenes actualmente en marcha" value="145" valueColor="text-[#4f8bc9]">
+        <KPICard title="Trenes actualmente en marcha" value={trainCount} valueColor="text-[#4f8bc9]">
           <TrainFront className="w-28 h-28 text-gray-400 stroke-[1]" />
         </KPICard>
 

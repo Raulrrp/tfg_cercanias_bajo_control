@@ -15,13 +15,16 @@ export const DataProvider = ({ children }) => {
   const lineHelpers = useLines();
   const zoneHelpers = useUrbanZones();
 
+  const trainCount = realtimeData.trains?.length || 0;
+
   // Expose all states and operational methods via a single context value object
   const value = {
     stationHelpers,
     trainHelpers,
     realtimeData,
     lineHelpers,
-    zoneHelpers
+    zoneHelpers,
+    trainCount,
   };
 
   return (
