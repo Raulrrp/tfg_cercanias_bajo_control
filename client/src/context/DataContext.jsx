@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { useStations } from '../hooks/station-hook.js';
-import { useTrainHelpers } from '../hooks/train-hook.js';
+import { useTrains } from '../hooks/train-hook.js';
 import { useRealtimeSnapshot } from '../hooks/realtime-hook.js';
 import { useLines } from '../hooks/line-hook.js';
 import { useUrbanZones } from '../hooks/urban-zones-hook.js';
@@ -10,7 +10,7 @@ const DataContext = createContext(null);
 export const DataProvider = ({ children }) => {
   // Initialize core data fetching hooks at the root level to prevent re-fetching on route switches
   const stationHelpers = useStations();
-  const trainHelpers = useTrainHelpers();
+  const trainHelpers = useTrains();
   const realtimeData = useRealtimeSnapshot();
   const lineHelpers = useLines();
   const zoneHelpers = useUrbanZones();

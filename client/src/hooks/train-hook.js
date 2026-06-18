@@ -1,4 +1,4 @@
-export const useTrainHelpers = () => {
+export const useTrains = () => {
   const getTrainById = (trains, id) => {
     const normalizedId = id?.trim();
     if (!normalizedId) {
