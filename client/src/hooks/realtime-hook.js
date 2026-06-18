@@ -1,11 +1,5 @@
-// loads periodcally and coordinatedly trains and updates
-
-import { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
-import { TrainPos } from '@tfg_cercanias_bajo_control/common/models/TrainPos.js';
-import { Update } from '@tfg_cercanias_bajo_control/common/models/Update.js';
-
-const DEFAULT_SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { useEffect, useState } from 'react';
+import { realtimeService } from '../services/realtime-service.js';
 
 export const useRealtimeSnapshot = () => {
   const [trains, setTrains] = useState([]);
@@ -13,75 +7,36 @@ export const useRealtimeSnapshot = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
-  const isMountedRef = useRef(true);
-  const socketRef = useRef(null);
 
   useEffect(() => {
-    isMountedRef.current = true;
-
-    // Determine socket URL: explicit VITE_SOCKET_URL > derive origin from VITE_API_URL > window.location.origin
-    let socketUrl = import.meta.env.VITE_SOCKET_URL;
-    if (!socketUrl) {
-      try {
-        const api = import.meta.env.VITE_API_URL;
-        socketUrl = api ? new URL(api).origin : DEFAULT_SOCKET_URL;
-      } catch (err) {
-        socketUrl = DEFAULT_SOCKET_URL;
-      }
-    }
-
-    const socket = io(socketUrl, { transports: ['websocket', 'polling'] });
-    socketRef.current = socket;
-
-    const handleTrains = (data) => {
-      if (!isMountedRef.current) return;
-      try {
-        const mapped = (data || []).map((j) => TrainPos.fromJson(j));
-        setTrains(mapped);
-        setLastUpdatedAt(new Date());
-        setLoading(false);
-        setError(null);
-      } catch (err) {
-        setError(String(err));
-      }
+    const handleTrainsUpdate = (mappedTrains) => {
+      setTrains(mappedTrains);
+      setLastUpdatedAt(new Date());
+      setLoading(false);
+      setError(null);
     };
 
-    const handleUpdates = (data) => {
-      if (!isMountedRef.current) return;
-      try {
-        const mapped = (data || []).map((j) => Update.fromJson(j));
-        setUpdates(mapped);
-        setLastUpdatedAt(new Date());
-        setLoading(false);
-        setError(null);
-      } catch (err) {
-        setError(String(err));
-      }
+    const handleUpdatesUpdate = (mappedUpdates) => {
+      setUpdates(mappedUpdates);
+      setLastUpdatedAt(new Date());
+      setLoading(false);
+      setError(null);
     };
 
-    const handleError = (err) => {
-      if (!isMountedRef.current) return;
+    const handleConnectionError = (err) => {
       setError(err?.message || String(err));
       setLoading(false);
     };
 
-    socket.on('connect_error', handleError);
-    socket.on('connect', () => {
-      // nothing special
-    });
-    socket.on('trains_update', handleTrains);
-    socket.on('updates_update', handleUpdates);
+    const unsubscribeTrains = realtimeService.subscribeToTrains(handleTrainsUpdate, handleConnectionError);
+    const unsubscribeUpdates = realtimeService.subscribeToUpdates(handleUpdatesUpdate, handleConnectionError);
+    const unsubscribeErrors = realtimeService.subscribeToErrors(handleConnectionError);
 
-    // cleanup
     return () => {
-      isMountedRef.current = false;
-      if (socketRef.current) {
-        socketRef.current.off('trains_update', handleTrains);
-        socketRef.current.off('updates_update', handleUpdates);
-        socketRef.current.off('connect_error', handleError);
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      unsubscribeTrains();
+      unsubscribeUpdates();
+      unsubscribeErrors();
+      realtimeService.disconnect();
     };
   }, []);
 
