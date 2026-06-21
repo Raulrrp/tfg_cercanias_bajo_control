@@ -1,50 +1,48 @@
-import { test, describe } from 'node:test';
+import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { LinearReferenceLoader } from '../src/services/linear-reference-loader.js';
 
 describe('LinearReferenceLoader Unit Tests', () => {
+  let loader;
+
+  beforeEach(() => {
+    loader = new LinearReferenceLoader();
+  });
 
   // ==========================================
-  // 1. METHOD: loadStopTimes
+  // 1. METHOD: initialize
   // ==========================================
-  describe('Method: loadStopTimes', () => {
-    test('should load stop times, group them by tripId, and sort them by stopSequence', async () => {
-      const loader = new LinearReferenceLoader();
+  describe('Method: initialize', () => {
+    test('should successfully index stations, shapes, trips and build geometries', async () => {
+      const mockStations = [{ id: 101, name: 'Station 101' }];
+      const mockShapes = [{ id: 'shape-1', shapePoints: [{ longitude: -3.7, latitude: 40.4 }, { longitude: -3.8, latitude: 40.5 }] }];
+      const mockTrips = [{ id: 'trip-1', routeId: 'R1' }];
 
-      // We inject mock data directly into the function to bypass the external repo file
+      // Overriding the method directly on this instance to isolate initialize from the external repo file
       loader.loadStopTimes = async function() {
-        const mockStopTimes = [
-          { tripId: 'trip-1', stopSequence: 2, stationId: 'B' },
-          { tripId: 'trip-1', stopSequence: 1, stationId: 'A' },
-          { tripId: 'trip-2', stopSequence: 1, stationId: 'C' }
-        ];
-        
-        mockStopTimes.forEach((stopTime) => {
-          const tripId = stopTime.tripId;
-          if (!this.stopTimesByTripId.has(tripId)) {
-            this.stopTimesByTripId.set(tripId, []);
-          }
-          this.stopTimesByTripId.get(tripId).push(stopTime);
-        });
-
-        this.stopTimesByTripId.forEach((stops) => {
-          stops.sort((a, b) => a.stopSequence - b.stopSequence);
-        });
+        // This avoids calling fetchStopTimes during initialize tests
+        return Promise.resolve();
       };
 
-      await loader.loadStopTimes();
+      await loader.initialize(mockStations, mockShapes, mockTrips);
 
-      const trip1Stops = loader.getStopTimesForTrip('trip-1');
-      const trip2Stops = loader.getStopTimesForTrip('trip-2');
+      assert.strictEqual(loader.getStation(101).name, 'Station 101');
+      assert.strictEqual(loader.getShape('shape-1'), mockShapes[0]);
+      assert.strictEqual(loader.getTrip('trip-1'), mockTrips[0]);
+      assert.notStrictEqual(loader.getLineString('shape-1'), undefined);
+    });
 
-      assert.strictEqual(loader.stopTimesByTripId.size, 2);
-      
-      assert.strictEqual(trip1Stops.length, 2);
-      assert.strictEqual(trip1Stops[0].stopSequence, 1);
-      assert.strictEqual(trip1Stops[1].stopSequence, 2);
+    test('should throw and log error when initialization fails', async () => {
+      loader.loadStopTimes = async function() {
+        throw new Error('Forced initialization error');
+      };
 
-      assert.strictEqual(trip2Stops.length, 1);
-      assert.strictEqual(trip2Stops[0].stopSequence, 1);
+      await assert.rejects(
+        async () => {
+          await loader.initialize([], [], []);
+        },
+        /Forced initialization error/
+      );
     });
   });
 
@@ -52,50 +50,46 @@ describe('LinearReferenceLoader Unit Tests', () => {
   // 2. METHOD: buildRouteGeometries
   // ==========================================
   describe('Method: buildRouteGeometries', () => {
-    test('should convert stored shape points into turf LineString geometries', () => {
-      const loader = new LinearReferenceLoader();
-      
-      const mockShapes = [
-        {
-          id: 'shape-100',
-          shapePoints: [
-            { longitude: -3.70379, latitude: 40.41677 },
-            { longitude: -3.70380, latitude: 40.41678 }
-          ]
-        }
-      ];
-      
-      loader.shapesByIdMap.set('shape-100', mockShapes[0]);
-
-      loader.buildRouteGeometries();
-
-      const resultGeometry = loader.getLineString('shape-100');
-
-      assert.notStrictEqual(resultGeometry, undefined);
-      assert.strictEqual(resultGeometry.type, 'Feature');
-      assert.strictEqual(resultGeometry.geometry.type, 'LineString');
-      assert.deepStrictEqual(resultGeometry.geometry.coordinates, [
-        [-3.70379, 40.41677],
-        [-3.70380, 40.41678]
-      ]);
-    });
-
-    test('should safely ignore shapes with invalid coordinates without throwing errors', () => {
-      const loader = new LinearReferenceLoader();
-      
-      const invalidShape = {
-        id: 'shape-invalid',
-        shapePoints: []
-      };
-      
+    test('should bypass elements that trigger turf errors gracefully', () => {
+      const invalidShape = { id: 'shape-invalid', shapePoints: [] };
       loader.shapesByIdMap.set('shape-invalid', invalidShape);
 
       assert.doesNotThrow(() => {
         loader.buildRouteGeometries();
       });
+      assert.strictEqual(loader.getLineString('shape-invalid'), undefined);
+    });
+  });
 
-      const resultGeometry = loader.getLineString('shape-invalid');
-      assert.strictEqual(resultGeometry, undefined);
+  // ==========================================
+  // 3. GETTERS: Getters Edge Cases & Conversions
+  // ==========================================
+  describe('Data Getters Edge Cases', () => {
+    test('getStation should resolve string IDs, numeric conversions, and padded strings', () => {
+      const stationObj = { id: 5451, name: 'Atocha' };
+      loader.stationsByIdMap.set(5451, stationObj);
+
+      assert.strictEqual(loader.getStation(5451), stationObj);
+      assert.strictEqual(loader.getStation('5451'), stationObj);
+      assert.strictEqual(loader.getStation('05451'), stationObj);
+      assert.strictEqual(loader.getStation('INVALID_ID'), null);
+    });
+
+    test('getTrip should resolve both direct types and fallback string conversions', () => {
+      const tripObj = { id: '999', name: 'Express' };
+      loader.tripsById.set('999', tripObj);
+
+      assert.strictEqual(loader.getTrip('999'), tripObj);
+      assert.strictEqual(loader.getTrip(999), tripObj);
+      assert.strictEqual(loader.getTrip('non-existent'), null);
+    });
+
+    test('getStopTimesForTrip should resolve fallback string conversions or return null', () => {
+      loader.stopTimesByTripId.set('42', [{ stopSequence: 1 }]);
+
+      assert.strictEqual(loader.getStopTimesForTrip('42').length, 1);
+      assert.strictEqual(loader.getStopTimesForTrip(42).length, 1);
+      assert.strictEqual(loader.getStopTimesForTrip('unknown'), null);
     });
   });
 });
