@@ -1,10 +1,11 @@
 export class StopTime {
-    constructor({tripId, arrivalTime, departureTime, stopId, stopSequence}) {
+    constructor({tripId, arrivalTime, departureTime, stopId, stopSequence, headsign = null}) {
         this.tripId = tripId;
         this.arrivalTime = arrivalTime;
         this.departureTime = departureTime;
         this.stopId = stopId;
         this.stopSequence = stopSequence;
+        this.headsign = headsign;
     }
 
     static fromJson(json) {
@@ -13,7 +14,8 @@ export class StopTime {
             arrivalTime: json.arrivalTime ?? json.arrival_time,
             departureTime: json.departureTime ?? json.departure_time,
             stopId: json.stopId ?? json.stop_id,
-            stopSequence: json.stopSequence ?? json.stop_sequence
+            stopSequence: json.stopSequence ?? json.stop_sequence,
+            headsign: json.headsign
         });
     }
 
@@ -24,6 +26,7 @@ export class StopTime {
             departureTime: this.departureTime,
             stopId: this.stopId,
             stopSequence: this.stopSequence,
+            headsign: this.headsign
         };
     }
 }
