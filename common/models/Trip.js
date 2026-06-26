@@ -14,7 +14,7 @@ export class Trip{
             routeId: json.routeId ?? json.route_id,
             serviceId: json.serviceId ?? json.service_id,
             id: json.id ?? json.trip_id,
-            headsign: json.headsign ?? json.trip_headsign,
+            headsign: json.headsign,
             wheelchairAccessible: json.wheelchairAccessible ?? json.wheelchair_accessible,
             blockId: json.blockId ?? json.block_id,
             shapeId: json.shapeId ?? json.shape_id
