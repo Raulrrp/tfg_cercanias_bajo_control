@@ -1,53 +1,31 @@
 import { MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { AlertCircle } from 'lucide-react';
 
-// Hooks & Componentes
 import { useStations } from '../hooks/station-hook.js';
 import { useLines } from '../hooks/line-hook.js';
+import { useStopTimes } from '../hooks/stop-times-hook.js';
 import StationMarker from './StationMarker.jsx';
 import PolylinesLayer from './PolylinesLayer.jsx';
 import TrainInfoCard from './TrainInfoCard.jsx';
 import TimetablePopup from './TimetablePopup.jsx';
-import TrainMarker from './TrainMarker.jsx'; // Importado desde el mismo directorio
+import TrainMarker from './TrainMarker.jsx';
 
 const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
-  const [timetableOpen, setTimetableOpen] = useState(false);
-  const [timetableStation, setTimetableStation] = useState(null);
-  const [timetableData, setTimetableData] = useState(null);
-  const [timetableLoading, setTimetableLoading] = useState(false);
-  const [timetableError, setTimetableError] = useState(null);
-
-  const fetchTimetable = useCallback(async (station) => {
-    setTimetableStation(station);
-    setTimetableLoading(true);
-    setTimetableError(null);
-    setTimetableData(null);
-    try {
-      const res = await fetch(`/api/stop-times/stop/${station.id}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setTimetableData(data);
-    } catch (err) {
-      setTimetableError(err.message || 'Error al cargar los horarios');
-    } finally {
-      setTimetableLoading(false);
-      setTimetableOpen(true);
-    }
-  }, []);
-
-  const closeTimetable = useCallback(() => {
-    setTimetableOpen(false);
-    setTimetableStation(null);
-    setTimetableData(null);
-    setTimetableError(null);
-  }, []);
-
   const markerRefs = useRef(new Map());
 
-  // Seguir al tren seleccionado
+  const {
+    timetableOpen,
+    timetableStation,
+    timetableData,
+    timetableLoading,
+    timetableError,
+    fetchTimetable,
+    closeTimetable
+  } = useStopTimes();
+
   useEffect(() => {
     if (!selectedTrain) return;
 
@@ -65,7 +43,6 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
     map.setView([liveSelectedTrain.latitude, liveSelectedTrain.longitude], 15);
   }, [selectedTrain, trains, map]);
 
-  // Hacer zoom al objetivo de búsqueda
   useEffect(() => {
     if (!zoomTarget) return;
 
@@ -86,15 +63,12 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
       />
       <ZoomControl position="topright" />
 
-      {/* 1. Dibujar líneas de tren */}
       <PolylinesLayer lines={lines} />
 
-      {/* 2. Dibujar estaciones */}
       {stations.map(st => (
         <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
       ))}
 
-      {/* 3. Dibujar posiciones de trenes en tiempo real usando TrainMarker */}
       {trains.map(train => (
         <TrainMarker
           key={train.id}
@@ -139,7 +113,7 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
 };
 
 const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
-  const position = [40.4167, -3.7037]; // Madrid por defecto
+  const position = [40.4167, -3.7037];
 
   const { stations, error: stationError } = useStations();
   const { lines, error: lineError } = useLines();
