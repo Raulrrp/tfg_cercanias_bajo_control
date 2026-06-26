@@ -85,19 +85,3 @@ export const fetchStopTimesByStopId = async (stopId) => {
     throw error;
   }
 };
-
-/**
- * Get the stop time for a specific trip and stop.
- * @param {string|number} tripId - Trip identifier
- * @param {string|number} stopId - Stop identifier
- * @returns {Promise<StopTime|null>} Matching stop time or null
- */
-export const fetchStopTimeByTripIdAndStopId = async (tripId, stopId) => {
-  try {
-    const allStopTimes = await fetchStopTimes();
-    return allStopTimes.find((stopTime) => String(stopTime.tripId) === String(tripId) && String(stopTime.stopId) === String(stopId)) ?? null;
-  } catch (error) {
-    console.error(`Error fetching stop time for trip_id ${tripId} and stop_id ${stopId}:`, error);
-    throw error;
-  }
-};
