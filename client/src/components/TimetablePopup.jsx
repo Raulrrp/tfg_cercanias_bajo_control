@@ -15,20 +15,18 @@ const TimetablePopup = ({ station, stopTimes, loading, error, onClose }) => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={thStyle}>Time</th>
-                  <th style={thStyle}>Trip</th>
-                  <th style={thStyle}>Dep</th>
+                  <th style={thStyle}>Hora de salida</th>
+                  <th style={thStyle}>Estación destino</th>
                 </tr>
               </thead>
               <tbody>
                 {stopTimes && stopTimes.length === 0 && (
-                  <tr><td colSpan="3">No departures found</td></tr>
+                  <tr><td colSpan="2">No departures found</td></tr>
                 )}
                 {stopTimes && stopTimes.map((st, idx) => (
                   <tr key={idx} style={trStyle}>
-                    <td style={tdStyle}>{st.arrivalTime || '-'}</td>
-                    <td style={tdStyle}>{st.tripId}</td>
-                    <td style={tdStyle}>{st.departureTime || '-'}</td>
+                    <td style={tdStyle}>{st.departureTime}</td>
+                    <td style={tdStyle}>{st.destination}</td>
                   </tr>
                 ))}
               </tbody>
