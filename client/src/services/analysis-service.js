@@ -88,5 +88,14 @@ export const analysisService = {
     const { data, error } = await client.rpc('get_top_stations_by_average_delay', params);
     if (error) throw error;
     return data;
-  }
+  },
+  
+  // Get the % of on time arrivals (delay lower than 5 mins)
+  getGlobalOnTimePercentage: async () => {
+    const client = getSupabase();
+    
+    const { data, error } = await client.rpc('get_on_time_arrivals_percentage');
+    if (error) throw error;
+    return data;
+  },
 };
