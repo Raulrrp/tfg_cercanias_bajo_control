@@ -25,7 +25,7 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
     fetchTimetable,
     closeTimetable
   } = useStopTimes();
-
+  
   useEffect(() => {
     if (!selectedTrain) return;
 
@@ -65,13 +65,12 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
 
       <PolylinesLayer lines={lines} />
 
-      <Pane name="stations-pane" style={{zIndez:650}}>
+      <Pane name="stations-pane" style={{zIndex:650}}>
         {stations.map(st => (
           <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
         ))}
       </Pane>
 
-      <Pane name="trains-pane" style={{zIndex:700}}>
         {trains.map(train => (
           <TrainMarker
             key={train.id}
@@ -101,7 +100,6 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
             />
           </TrainMarker>
         ))}
-      </Pane>  
 
       {timetableOpen && (
         <TimetablePopup
