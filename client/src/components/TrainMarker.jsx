@@ -6,8 +6,8 @@ import trainImg from '../assets/train.png';
 const trainIcon = L.icon({
   iconUrl: trainImg,
   iconSize: [32, 32], 
-  iconAnchor: [24, 24],
-  popupAnchor: [0, -20]
+  iconAnchor: [29, 16],
+  popupAnchor: [-12, -20]
 });
 
 const TrainMarker = React.forwardRef(({ train, onClick, popupEventHandlers, children }, ref) => {

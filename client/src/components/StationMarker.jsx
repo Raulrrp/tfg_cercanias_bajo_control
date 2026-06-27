@@ -12,18 +12,12 @@ const defaultIcon = L.icon({
   iconAnchor: [12, 41]
 });
 
-/* 💡 OPCIONAL: Si prefieres un diseño de marcador circular minimalista (estilo estación de metro plana) 
-  que encaje aún MEJOR con la estética limpia de Análisis en lugar del pin azul clásico, 
-  puedes sustituir el componente <Marker> por un <CircleMarker> de Leaflet de esta forma:
-  */
-  
-
-
 const StationMarker = ({ station, onClick }) => {
   return (
     <CircleMarker
-      center={[station.latitude, station.longitude]}
-      radius={4.5}
+      // 0.0002 is a little right biased offset to ease its visualization
+      center={[station.latitude, station.longitude+0.0002]}
+      radius={6}
       pathOptions={{ color: '#6b8299', fillColor: '#ffffff', fillOpacity: 1, weight: 2 }}
       eventHandlers={{ click: () => onClick && onClick(station) }}
     />
