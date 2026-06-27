@@ -26,7 +26,8 @@ export const useAnalysis = (lineZone = '', stationZone = '', stationLine = '') =
     linesByDelayPct: [],
     stationsByDelayPct: [],
     linesByAvgDelay: [],
-    stationsByAvgDelay: []
+    stationsByAvgDelay: [],
+    globalOnTimePercentage: 0
   });
 
   useEffect(() => {
@@ -35,21 +36,23 @@ export const useAnalysis = (lineZone = '', stationZone = '', stationLine = '') =
         setLoading(true);
         setError(null);
 
-        // Fetch data passing corresponding filters
+        // Fetch data passing corresponding filters including global percentage
         const [
           rawBusiestLines,
           rawBusiestStations,
           rawLinesDelayPct,
           rawStationsDelayPct,
           rawLinesAvgDelay,
-          rawStationsAvgDelay
+          rawStationsAvgDelay,
+          rawGlobalOnTimePercentage
         ] = await Promise.all([
           analysisService.getBusiestLines(lineZone),
           analysisService.getBusiestStations(stationZone, stationLine),
           analysisService.getTopLinesByDelayPercentage(lineZone),
           analysisService.getTopStationsByDelayPercentage(stationZone, stationLine),
           analysisService.getTopLinesByAverageDelay(lineZone),
-          analysisService.getTopStationsByAverageDelay(stationZone, stationLine)
+          analysisService.getTopStationsByAverageDelay(stationZone, stationLine),
+          analysisService.getGlobalOnTimePercentage()
         ]);
 
         // Helper function mapping database columns to UI
@@ -78,14 +81,15 @@ export const useAnalysis = (lineZone = '', stationZone = '', stationLine = '') =
           });
         };
 
-        // Update state with formatted data
+        // Update state with formatted data and scalar global index
         setDashboardData({
           busiestLines: mapData(rawBusiestLines, 'line_name', 'total_traffic', formatTrafficLabel),
           busiestStations: mapData(rawBusiestStations, 'station_name', 'total_traffic', formatTrafficLabel),
           linesByDelayPct: mapData(rawLinesDelayPct, 'line_name', 'delay_percentage', formatPercentLabel),
           stationsByDelayPct: mapData(rawStationsDelayPct, 'station_name', 'delay_percentage', formatPercentLabel),
           linesByAvgDelay: mapData(rawLinesAvgDelay, 'line_name', 'average_delay_seconds', formatMinutesLabel),
-          stationsByAvgDelay: mapData(rawStationsAvgDelay, 'station_name', 'average_delay_seconds', formatMinutesLabel)
+          stationsByAvgDelay: mapData(rawStationsAvgDelay, 'station_name', 'average_delay_seconds', formatMinutesLabel),
+          globalOnTimePercentage: rawGlobalOnTimePercentage ? Number(rawGlobalOnTimePercentage) : 0
         });
 
       } catch (err) {
