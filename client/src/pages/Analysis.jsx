@@ -93,7 +93,7 @@ const Analysis = () => {
           <TrainFront className="w-28 h-28 text-gray-400 stroke-[1]" />
         </KPICard>
 
-        <KPICard title="% de llegadas con retraso < 5 minutos" value="88%" valueColor="text-[#6b8299]">
+        <KPICard title="% de llegadas con retraso < 5 minutos" value={`${dashboardData.globalOnTimePercentage}%`} valueColor="text-[#6b8299]">
           <div className="w-40 h-20 relative flex items-end justify-center">
             <div className="w-32 h-16 border-[3px] border-b-0 border-[#6b8299] rounded-t-full absolute bottom-0 opacity-70"></div>
           </div>
