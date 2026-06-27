@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DataProvider } from './context/DataContext.jsx';
-import Home from './pages/Home.jsx';
+import Map from './pages/Map.jsx';
 import Analysis from './pages/Analysis.jsx';
 
 function App() {
@@ -11,7 +11,7 @@ function App() {
     <DataProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Map />} />
           <Route path="/analysis" element={<Analysis />} />
         </Routes>
       </BrowserRouter>

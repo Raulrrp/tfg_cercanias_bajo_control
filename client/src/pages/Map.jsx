@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
-import Topbar from '../components/Topbar';
-import MapView from '../components/MapView';
+import Topbar from '../components/Topbar.jsx';
+import MapView from '../components/MapView.jsx';
 import { useGlobalData } from '../context/DataContext.jsx';
 
-const Home = () => {
+const Map = () => {
   const [filterMode, setFilterMode] = useState('urban-zone');
   const [filterValue, setFilterValue] = useState('');
   const [searchError, setSearchError] = useState('');
@@ -121,4 +121,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Map;
