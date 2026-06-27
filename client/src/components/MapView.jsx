@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, ZoomControl, useMap, Pane } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef } from 'react';
 import { AlertCircle } from 'lucide-react';
@@ -65,39 +65,43 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
 
       <PolylinesLayer lines={lines} />
 
-      {stations.map(st => (
-        <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
-      ))}
+      <Pane name="stations-pane" style={{zIndez:650}}>
+        {stations.map(st => (
+          <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
+        ))}
+      </Pane>
 
-      {trains.map(train => (
-        <TrainMarker
-          key={train.id}
-          ref={(marker) => {
-            if (marker) {
-              markerRefs.current.set(train.id, marker);
-            } else {
-              markerRefs.current.delete(train.id);
-            }
-          }}
-          train={train}
-          onClick={onTrainSelect}
-          popupEventHandlers={{
-            remove: () => {
-              if (selectedTrain?.id === train.id) {
-                onCloseTrainCard();
+      <Pane name="trains-pane" style={{zIndex:700}}>
+        {trains.map(train => (
+          <TrainMarker
+            key={train.id}
+            ref={(marker) => {
+              if (marker) {
+                markerRefs.current.set(train.id, marker);
+              } else {
+                markerRefs.current.delete(train.id);
               }
-            }
-          }}
-        >
-          <TrainInfoCard
+            }}
             train={train}
-            nextStopName={getStationById(train.nextStationId)?.name}
-            delay={delayByTripId.get(String(train.tripId))}
-            onClose={onCloseTrainCard}
-            inPopup={true}
-          />
-        </TrainMarker>
-      ))}
+            onClick={onTrainSelect}
+            popupEventHandlers={{
+              remove: () => {
+                if (selectedTrain?.id === train.id) {
+                  onCloseTrainCard();
+                }
+              }
+            }}
+          >
+            <TrainInfoCard
+              train={train}
+              nextStopName={getStationById(train.nextStationId)?.name}
+              delay={delayByTripId.get(String(train.tripId))}
+              onClose={onCloseTrainCard}
+              inPopup={true}
+            />
+          </TrainMarker>
+        ))}
+      </Pane>  
 
       {timetableOpen && (
         <TimetablePopup
