@@ -1,4 +1,4 @@
-export const fetchStopTimesByStationId = async (stationId) => {
+export const fetchDeparturesByStationId = async (stationId) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/stop-times/${stationId}`);
     if (!response.ok) throw new Error(`Failed to fetch upcoming stop times for station ${stationId}`);

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { fetchStopTimesByStationId } from '../services/stop-times-service.js';
+import { fetchDeparturesByStationId } from '../services/stop-times-service.js';
 
 export const useStopTimes = () => {
   const [timetableOpen, setTimetableOpen] = useState(false);
@@ -15,7 +15,7 @@ export const useStopTimes = () => {
     setTimetableError(null);
     setTimetableData(null);
     try {
-      const data = await fetchStopTimesByStationId(station.id);
+      const data = await fetchDeparturesByStationId(station.id);
       setTimetableData(data);
     } catch (err) {
       setTimetableError(err.message || 'Error al cargar los horarios');

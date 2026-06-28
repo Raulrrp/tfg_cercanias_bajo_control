@@ -1,9 +1,9 @@
 import * as StopTimesService from '../services/stop-times-service.js';
 
-export const getStopTimesByStopId = async (req, res) => {
+export const getDeparturesByStopId = async (req, res) => {
   try {
     const { stopId } = req.params;
-    const stopTimes = await StopTimesService.getStopTimesByStopId(stopId);
+    const stopTimes = await StopTimesService.getDeparturesByStopId(stopId);
     
     // map domain objects to a plain DTO array optimized for network transfer
     const departuresDto = stopTimes.map(st => ({
