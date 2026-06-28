@@ -1,99 +1,88 @@
 // services/analysis-service.js
 import { createClient } from '@supabase/supabase-js';
 
-// Singleton instance
 let supabase = null;
 
-// Initialize Supabase client
 const getSupabase = () => {
     if (!supabase) {
         const url = import.meta.env.VITE_SUPABASE_URL;
         const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-        if (!url || !key) {
-            throw new Error('Supabase environment variables are missing.');
-        }
-
+        if (!url || !key) throw new Error('Supabase environment variables are missing.');
         supabase = createClient(url, key);
     }
-
     return supabase;
 };
 
+// Single-line English comment: Helper to map snake_case SQL columns to camelCase domain models
+const mapSqlRows = (data) => {
+  if (!data) return [];
+  return data.map(row => ({
+    lineName: row.line_name,
+    stationName: row.station_name,
+    totalTraffic: row.total_traffic,
+    delayPercentage: row.delay_percentage,
+    averageDelaySeconds: row.average_delay_seconds,
+    urbanZone: row.urban_zone_name // Single-line English comment: Map database column to domain property here
+  }));
+};
+
 export const analysisService = {
-  // Fetch top 5 busiest lines
   getBusiestLines: async (urbanZone) => {
     const client = getSupabase();
-    const params = {};
-    if (urbanZone) params.target_zona = urbanZone;
-    
+    const params = urbanZone ? { target_zona: urbanZone } : {};
     const { data, error } = await client.rpc('get_busiest_lines', params);
     if (error) throw error;
-    return data;
+    return mapSqlRows(data);
   },
 
-  // Fetch top 5 busiest stations
   getBusiestStations: async (urbanZone, lineName) => {
     const client = getSupabase();
     const params = {};
     if (urbanZone) params.target_zona = urbanZone;
     if (lineName) params.target_line = lineName;
-    
     const { data, error } = await client.rpc('get_busiest_stations', params);
     if (error) throw error;
-    return data;
+    return mapSqlRows(data);
   },
 
-  // Fetch lines with highest delay percentage
   getTopLinesByDelayPercentage: async (urbanZone) => {
     const client = getSupabase();
-    const params = {};
-    if (urbanZone) params.target_zona = urbanZone;
-    
+    const params = urbanZone ? { target_zona: urbanZone } : {};
     const { data, error } = await client.rpc('get_top_lines_by_delay_percentage', params);
     if (error) throw error;
-    return data;
+    return mapSqlRows(data);
   },
 
-  // Fetch stations with highest delay percentage
   getTopStationsByDelayPercentage: async (urbanZone, lineName) => {
     const client = getSupabase();
     const params = {};
     if (urbanZone) params.target_zona = urbanZone;
     if (lineName) params.target_line = lineName;
-    
     const { data, error } = await client.rpc('get_top_stations_by_delay_percentage', params);
     if (error) throw error;
-    return data;
+    return mapSqlRows(data);
   },
 
-  // Fetch lines with highest average delay
   getTopLinesByAverageDelay: async (urbanZone) => {
     const client = getSupabase();
-    const params = {};
-    if (urbanZone) params.target_zona = urbanZone;
-    
+    const params = urbanZone ? { target_zona: urbanZone } : {};
     const { data, error } = await client.rpc('get_top_lines_by_average_delay', params);
     if (error) throw error;
-    return data;
+    return mapSqlRows(data);
   },
 
-  // Fetch stations with highest average delay
   getTopStationsByAverageDelay: async (urbanZone, lineName) => {
     const client = getSupabase();
     const params = {};
     if (urbanZone) params.target_zona = urbanZone;
     if (lineName) params.target_line = lineName;
-    
     const { data, error } = await client.rpc('get_top_stations_by_average_delay', params);
     if (error) throw error;
-    return data;
+    return mapSqlRows(data);
   },
   
-  // Get the % of on time arrivals (delay lower than 5 mins)
   getGlobalOnTimePercentage: async () => {
     const client = getSupabase();
-    
     const { data, error } = await client.rpc('get_on_time_arrivals_percentage');
     if (error) throw error;
     return data;
