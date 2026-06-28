@@ -1,6 +1,6 @@
-import { MapContainer, TileLayer, ZoomControl, useMap, Pane } from 'react-leaflet';
+import { MapContainer, TileLayer, ZoomControl, useMap, useMapEvents, Pane } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 
 import { useStations } from '../hooks/station-hook.js';
@@ -15,6 +15,15 @@ import TrainMarker from './TrainMarker.jsx';
 const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const map = useMap();
   const markerRefs = useRef(new Map());
+  // Store the current zoom level to evaluate rendering thresholds
+  const [currentZoom, setCurrentZoom] = useState(map.getZoom());
+
+  // Register map event listeners to track real-time zoom level changes
+  useMapEvents({
+    zoomend: () => {
+      setCurrentZoom(map.getZoom());
+    }
+  });
 
   const {
     timetableOpen,
@@ -66,7 +75,8 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
       <PolylinesLayer lines={lines} />
 
       <Pane name="stations-pane" style={{zIndex:650}}>
-        {stations.map(st => (
+        {/* Conditional rendering depending on whether the zoom level matches the threshold */}
+        {currentZoom >= 8 && stations.map(st => (
           <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
         ))}
       </Pane>
