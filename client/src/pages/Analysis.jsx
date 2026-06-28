@@ -31,6 +31,10 @@ const Analysis = () => {
     setStationLineFilter('');
   };
 
+  // to print the half-moon chart properly
+  const percentage = dashboardData.globalOnTimePercentage || 100;
+  const strokeOffset = 157 - (157 * percentage) / 100;
+
   let filteredLines = [];
   if (stationUrbanZoneFilter !== '') {
       filteredLines = getLinesByZone(stationUrbanZoneFilter);
@@ -90,9 +94,29 @@ const Analysis = () => {
           <TrainFront className="w-28 h-28 text-gray-400 stroke-[1]" />
         </KPICard>
 
-        <KPICard title="Llegadas con retraso menor a 5 minutos" value={`${dashboardData.globalOnTimePercentage}%`} valueColor="text-[#6b8299]">
+        <KPICard title="% de llegadas con retraso < 5 minutos" value={`${percentage}%`} valueColor="text-[#6b8299]">
           <div className="w-40 h-20 relative flex items-end justify-center">
-            <div className="w-32 h-16 border-[3px] border-b-0 border-[#6b8299] rounded-t-full absolute bottom-0 opacity-70"></div>
+            <svg className="w-32 h-20" viewBox="0 0 112 56">
+              {/*Background semicircle*/}
+              <path
+                d="M 5,50 A 50,50 0 0,1 105,50"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+              {/*Main semicircle*/}
+              <path
+                d="M 5,50 A 50,50 0 0,1 105,50"
+                fill="none"
+                stroke="#6b8299"
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray="157"
+                strokeDashoffset={strokeOffset}
+                style={{ transition: 'stroke-dashoffset 0.8s ease-in-out' }}
+              />
+            </svg>
           </div>
         </KPICard>
       </div>
