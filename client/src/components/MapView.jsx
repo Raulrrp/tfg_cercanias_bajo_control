@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, ZoomControl, useMap, useMapEvents, Pane } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 import { useStations } from '../hooks/station-hook.js';
 import { useLines } from '../hooks/line-hook.js';
@@ -12,18 +12,26 @@ import TrainInfoCard from './TrainInfoCard.jsx';
 import TimetablePopup from './TimetablePopup.jsx';
 import TrainMarker from './TrainMarker.jsx';
 
-const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
+const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete, onRenderComplete }) => {
   const map = useMap();
   const markerRefs = useRef(new Map());
-  // Store the current zoom level to evaluate rendering thresholds
   const [currentZoom, setCurrentZoom] = useState(map.getZoom());
 
-  // Register map event listeners to track real-time zoom level changes
   useMapEvents({
     zoomend: () => {
       setCurrentZoom(map.getZoom());
     }
   });
+
+  // Evaluate the rendering state by including trains inside the synchronization dependency array
+  useEffect(() => {
+    if (stations.length > 0 && lines.length > 0 && trains.length > 0) {
+      const timer = setTimeout(() => {
+        onRenderComplete();
+      }, 500); // 500ms buffer ensures that the heavy DOM insertion of train layers finishes completely
+      return () => clearTimeout(timer);
+    }
+  }, [stations, lines, trains, onRenderComplete]);
 
   const {
     timetableOpen,
@@ -75,8 +83,7 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
       <PolylinesLayer lines={lines} />
 
       <Pane name="stations-pane" style={{zIndex:650}}>
-        {/* Conditional rendering depending on whether the zoom level matches the threshold */}
-        {currentZoom >= 8 && stations.map(st => (
+        {currentZoom >= 9 && stations.map(st => (
           <StationMarker key={st.id} station={st} onClick={fetchTimetable} />
         ))}
       </Pane>
@@ -127,8 +134,13 @@ const MapContent = ({ trains, stations, lines, delayByTripId, onTrainSelect, sel
 const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, onCloseTrainCard, getStationById, zoomTarget, onZoomComplete }) => {
   const position = [40.4167, -3.7037];
 
-  const { stations, error: stationError } = useStations();
-  const { lines, error: lineError } = useLines();
+  const { stations, loading: stationsLoading, error: stationError } = useStations();
+  const { lines, loading: linesLoading, error: lineError } = useLines();
+
+  const [mapRendered, setMapRendered] = useState(false);
+
+  // Maintain loading state active if trains array hasn't received any initial operational telemetry data yet
+  const isVisualLoading = stationsLoading || linesLoading || trains.length === 0 || !mapRendered;
 
   const delayByTripId = useMemo(() => {
     const map = new Map();
@@ -146,6 +158,13 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
         <div className="absolute top-4 left-4 z-[2000] flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 px-4 py-2.5 rounded-xl shadow-md text-sm font-medium">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{activeError}</span>
+        </div>
+      )}
+
+      {isVisualLoading && !activeError && (
+        <div className="absolute top-4 left-4 z-[2000] flex items-center gap-3 bg-white border border-gray-100 text-gray-700 px-4 py-2.5 rounded-xl shadow-md text-sm font-medium">
+          <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+          <span className="text-gray-500 font-normal">Cargando datos del mapa...</span>
         </div>
       )}
       
@@ -166,6 +185,7 @@ const MapView = ({ trains, updates, trainError, onTrainSelect, selectedTrain, on
           getStationById={getStationById}
           zoomTarget={zoomTarget}
           onZoomComplete={onZoomComplete}
+          onRenderComplete={() => setMapRendered(true)}
         />
       </MapContainer>
     </div>
