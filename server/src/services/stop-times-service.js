@@ -58,7 +58,18 @@ export const getDeparturesByStopId = async (stationId) => {
   }
 
   const now = new Date();
-  const currentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const format = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Madrid',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hourCycle: 'h23' // warrants that 24:00 is formated as 00:00
+  });
+  const parts = format.formatToParts(now);
+  const hours = parseInt(parts.find( part => part.type === 'hour').value, 10)
+  const minutes = parseInt(parts.find(part => part.type === 'minute').value, 10);
+  const seconds = parseInt(parts.find( part => part.type === 'second').value, 10);
+  const currentSeconds = hours * 3600 + minutes * 60 + seconds;
 
   const seenTrips = new Set();
   const filtered = [];
