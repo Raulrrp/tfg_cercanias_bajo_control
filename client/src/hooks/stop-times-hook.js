@@ -9,6 +9,7 @@ export const useStopTimes = () => {
   const [timetableError, setTimetableError] = useState(null);
 
   const fetchTimetable = useCallback(async (station) => {
+    setTimetableOpen(true);
     setTimetableStation(station);
     setTimetableLoading(true);
     setTimetableError(null);
@@ -20,7 +21,6 @@ export const useStopTimes = () => {
       setTimetableError(err.message || 'Error al cargar los horarios');
     } finally {
       setTimetableLoading(false);
-      setTimetableOpen(true);
     }
   }, []);
 

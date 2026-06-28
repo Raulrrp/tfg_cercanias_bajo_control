@@ -1,4 +1,5 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react'; // Import the spinner icon to match the dashboard style
 
 const TimetablePopup = ({ station, stopTimes, loading, error, onClose }) => {
   return (
@@ -9,8 +10,16 @@ const TimetablePopup = ({ station, stopTimes, loading, error, onClose }) => {
           <button onClick={onClose} style={closeButtonStyle}>✕</button>
         </div>
         <div style={{ padding: '8px', maxHeight: '60vh', overflow: 'auto' }}>
-          {loading && <div>Loading...</div>}
+          {loading && (
+            // Match the design style using centering flexbox and the animated spinner icon
+            <div style={loadingContainerStyle}>
+              <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-2" />
+              <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Cargando horarios...</p>
+            </div>
+          )}
+          
           {error && <div style={{ color: 'red' }}>{error}</div>}
+          
           {!loading && !error && (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -72,6 +81,15 @@ const closeButtonStyle = {
   background: 'transparent',
   fontSize: '16px',
   cursor: 'pointer',
+};
+
+// Centered layout block for the loader view inside the card container
+const loadingContainerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '32px 0',
 };
 
 const thStyle = { textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid #eee' };
