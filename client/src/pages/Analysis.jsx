@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrainFront, Loader2, AlertCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import HorizontalChartCard from '../components/HorizontalChartCard.jsx';
@@ -12,6 +12,9 @@ const Analysis = () => {
   const [lineUrbanZoneFilter, setLineUrbanZoneFilter] = useState('');
   const [stationLineFilter, setStationLineFilter] = useState('');
   const [stationUrbanZoneFilter, setStationUrbanZoneFilter] = useState('');
+  
+  // Single-line English comment: Track if the dashboard is being loaded for the very first time
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { 
     lineHelpers: { getLinesByZone }, 
@@ -24,6 +27,13 @@ const Analysis = () => {
     stationUrbanZoneFilter, 
     stationLineFilter
   );
+
+  // Single-line English comment: Disable the initial load flag once data is successfully fetched for the first time
+  useEffect(() => {
+    if (!loading && dashboardData) {
+      setIsInitialLoad(false);
+    }
+  }, [loading, dashboardData]);
   
   const handleBothUrbanZoneFilters = (urbanZoneName) => {
     setStationUrbanZoneFilter(urbanZoneName);
@@ -31,8 +41,7 @@ const Analysis = () => {
     setStationLineFilter('');
   };
 
-  // to print the half-moon chart properly
-  const percentage = dashboardData.globalOnTimePercentage || 100;
+  const percentage = dashboardData?.globalOnTimePercentage || 100;
   const strokeOffset = 157 - (157 * percentage) / 100;
 
   let filteredLines = [];
@@ -40,7 +49,8 @@ const Analysis = () => {
       filteredLines = getLinesByZone(stationUrbanZoneFilter);
   }
 
-  if (loading) {
+  // Single-line English comment: Show global loading screen only during the absolute first page load
+  if (loading && isInitialLoad) {
     return (
       <div className="min-h-screen bg-[#f3f4f6] flex flex-col items-center justify-center">
         <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
@@ -97,7 +107,6 @@ const Analysis = () => {
         <KPICard title="% de llegadas con retraso < 5 minutos" value={`${percentage}%`} valueColor="text-[#6b8299]">
           <div className="w-40 h-20 relative flex items-end justify-center">
             <svg className="w-32 h-20" viewBox="0 0 112 56">
-              {/*Background semicircle*/}
               <path
                 d="M 5,50 A 50,50 0 0,1 105,50"
                 fill="none"
@@ -105,7 +114,6 @@ const Analysis = () => {
                 strokeWidth="6"
                 strokeLinecap="round"
               />
-              {/*Main semicircle*/}
               <path
                 d="M 5,50 A 50,50 0 0,1 105,50"
                 fill="none"
@@ -146,24 +154,27 @@ const Analysis = () => {
         <div className="grid grid-cols-3 gap-4">
           <HorizontalChartCard 
             title="Top 5 Líneas con más tráfico" 
-            data={dashboardData.busiestLines} 
+            data={dashboardData?.busiestLines} 
             dataKey="value" 
             labelKey="label" 
             xDomain={[0, 'dataMax']} 
+            loading={loading}
           />
           <HorizontalChartCard 
             title="Top 5 líneas con mayor % de retrasos de más de 5 minutos" 
-            data={dashboardData.linesByDelayPct} 
+            data={dashboardData?.linesByDelayPct} 
             dataKey="value" 
             labelKey="label" 
             xDomain={[0, 100]} 
+            loading={loading}
           />
           <HorizontalChartCard 
             title="Top 5 líneas con retraso medio más alto" 
-            data={dashboardData.linesByAvgDelay} 
+            data={dashboardData?.linesByAvgDelay} 
             dataKey="value" 
             labelKey="label" 
             xDomain={[0, 'dataMax']} 
+            loading={loading}
           />
         </div>
       </div>
@@ -212,26 +223,29 @@ const Analysis = () => {
         <div className="grid grid-cols-3 gap-4">
           <HorizontalChartCard 
             title="Top 5 Estaciones con más tráfico" 
-            data={dashboardData.busiestStations} 
+            data={dashboardData?.busiestStations} 
             dataKey="value" 
             labelKey="label" 
             xDomain={[0, 'dataMax']} 
+            loading={loading}
           />
           <HorizontalChartCard 
             title="Top 5 Estaciones con mayor % de retrasos" 
-            data={dashboardData.stationsByDelayPct} 
+            data={dashboardData?.stationsByDelayPct} 
             dataKey="value" 
             labelKey="label" 
             xDomain={[0, 100]} 
             showBadges={true} 
+            loading={loading}
           />
           <HorizontalChartCard 
             title="Top 5 Estaciones con retraso medio más alto" 
-            data={dashboardData.stationsByAvgDelay} 
+            data={dashboardData?.stationsByAvgDelay} 
             dataKey="value" 
             labelKey="label" 
             xDomain={[0, 'dataMax']} 
             showBadges={true} 
+            loading={loading}
           />
         </div>  
       </div>
