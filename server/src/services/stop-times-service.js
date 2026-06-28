@@ -1,18 +1,8 @@
-import { fetchStopTimes } from '../data/files/stop-times-repo.js';
+import { fetchStopTimes, parseTimeToSeconds } from '../data/files/stop-times-repo.js';
 import { fetchCalendarEntries } from '../data/files/calendar-repo.js';
 import { fetchTrips } from '../data/files/trip-repo.js';
 import { fetchStations } from '../data/files/station-repo.js';
 import { StopTime } from '@tfg_cercanias_bajo_control/common/models/StopTime.js';
-
-const parseTimeToSeconds = (timeStr) => {
-  if (!timeStr) return Number.POSITIVE_INFINITY;
-  const parts = String(timeStr).split(':');
-  if (parts.length < 2) return Number.POSITIVE_INFINITY;
-  const h = parseInt(parts[0], 10) || 0;
-  const m = parseInt(parts[1], 10) || 0;
-  const s = parseInt(parts[2], 10) || 0;
-  return h * 3600 + m * 60 + s;
-};
 
 const getActiveServiceIdsForToday = (calendarEntries) => {
   const today = new Date();
@@ -30,10 +20,12 @@ const getActiveServiceIdsForToday = (calendarEntries) => {
       const runsOnDay = entry[currentDayName] === 1;
       return withinDates && runsOnDay;
     })
-    .map(entry => entry.serviceId);
+    .map(entry => String(entry.serviceId).trim()); // Normalize serviceId to string for safe comparison
 };
 
 export const getDeparturesByStopId = async (stationId) => {
+  const normalizedStationId = String(stationId).trim();
+  
   const allStopTimes = await fetchStopTimes();
   const calendarEntries = await fetchCalendarEntries();
   const allTrips = await fetchTrips();
@@ -43,21 +35,21 @@ export const getDeparturesByStopId = async (stationId) => {
 
   const tripMap = new Map();
   allTrips.forEach(trip => {
-    tripMap.set(String(trip.id), trip);
+    tripMap.set(String(trip.id).trim(), trip);
   });
 
   const stationMap = new Map();
   allStations.forEach(station => {
-    stationMap.set(String(station.id), station);
+    stationMap.set(String(station.id).trim(), station);
   });
 
   const tripMaxSequenceMap = new Map();
   const tripDestinationMap = new Map();
 
   for (const st of allStopTimes) {
-    const tId = String(st.tripId);
+    const tId = st.tripId; // Already string normalized from repository
     const currentSeq = st.stopSequence || 0;
-    const maxSeq = tripMaxSequenceMap.get(tId) || -1;
+    const maxSeq = tripMaxSequenceMap.get(tId) ?? -1;
 
     if (currentSeq > maxSeq) {
       tripMaxSequenceMap.set(tId, currentSeq);
@@ -72,20 +64,20 @@ export const getDeparturesByStopId = async (stationId) => {
   const filtered = [];
 
   for (const st of allStopTimes) {
-    if (String(st.stopId) !== String(stationId)) continue;
+    if (st.stopId !== normalizedStationId) continue;
 
-    const tripIdStr = String(st.tripId);
+    const tripIdStr = st.tripId; // Already string normalized from repository
     if (seenTrips.has(tripIdStr)) continue;
 
     const finalStopOfTrip = tripDestinationMap.get(tripIdStr);
-    if (finalStopOfTrip && String(st.stopId) === String(finalStopOfTrip.stopId)) {
+    if (finalStopOfTrip && st.stopId === finalStopOfTrip.stopId) {
       continue;
     }
 
     const trip = tripMap.get(tripIdStr);
     if (!trip) continue;
 
-    const isServiceActive = activeServices.includes(String(trip.serviceId));
+    const isServiceActive = activeServices.includes(String(trip.serviceId).trim());
     if (!isServiceActive) continue;
 
     const departureSeconds = parseTimeToSeconds(st.departureTime || st.arrivalTime);
@@ -95,7 +87,7 @@ export const getDeparturesByStopId = async (stationId) => {
 
     let destinationName = 'Unknown Destination';
     if (finalStopOfTrip) {
-      const targetStation = stationMap.get(String(finalStopOfTrip.stopId));
+      const targetStation = stationMap.get(finalStopOfTrip.stopId);
       if (targetStation) {
         destinationName = targetStation.name || targetStation.stop_name || 'Unknown Destination';
       }
@@ -121,6 +113,9 @@ export const getDeparturesByStopId = async (stationId) => {
 };
 
 export const getStopTimeByTripIdAndStopId = async (tripId, stopId) => {
+  const normalizedTripId = String(tripId).trim();
+  const normalizedStopId = String(stopId).trim();
+  
   const allStopTimes = await fetchStopTimes();
-  return allStopTimes.find((st) => String(st.tripId) === String(tripId) && String(st.stopId) === String(stopId)) || null;
+  return allStopTimes.find((st) => st.tripId === normalizedTripId && st.stopId === normalizedStopId) || null;
 };

@@ -9,10 +9,17 @@ const STOP_TIMES_FILE_PATH = path.resolve(__dirname, '../../../data_files/stop_t
 
 let cachedStopTimes = null;
 
-/**
- * Fetch all stop times from stop_times.txt
- * @returns {Promise<Array<StopTime>>} Array of StopTime domain objects
- */
+// Helper: parse GTFS time (HH:MM:SS) into seconds since midnight
+export const parseTimeToSeconds = (timeStr) => {
+  if (!timeStr) return Number.POSITIVE_INFINITY;
+  const parts = String(timeStr).split(':');
+  if (parts.length < 2) return Number.POSITIVE_INFINITY;
+  const h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
+  const s = parseInt(parts[2], 10) || 0;
+  return h * 3600 + m * 60 + s;
+};
+
 export const fetchStopTimes = async () => {
   try {
     if (cachedStopTimes) return cachedStopTimes;
@@ -28,15 +35,13 @@ export const fetchStopTimes = async () => {
     });
 
     const stopTimes = records.map((record) => {
-      // GTFS stop_times.txt format:
-      // trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,shape_dist_traveled
       const [tripId, arrivalTime, departureTime, stopId, stopSequence, , , , shapeDistTraveled] = record;
 
       return new StopTime({
-        tripId,
+        tripId: String(tripId).trim(), // Normalize ID formatting directly on load
         arrivalTime,
         departureTime,
-        stopId,
+        stopId: String(stopId).trim(), // Normalize ID formatting directly on load
         stopSequence: parseInt(stopSequence, 10),
         shapeDistTraveled: shapeDistTraveled ? parseFloat(shapeDistTraveled) : null,
       });
@@ -50,29 +55,12 @@ export const fetchStopTimes = async () => {
   }
 };
 
-/**
- * Get stop times by stop_id
- * @param {string|number} stopId - The stop ID to filter by
- * @returns {Promise<Array<StopTime>>} Array of StopTime objects for the given stop
- */
 export const fetchStopTimesByStopId = async (stopId) => {
   try {
     const allStopTimes = await fetchStopTimes();
-    const filtered = allStopTimes.filter(st => st.stopId == stopId);
+    const normalizedStopId = String(stopId).trim();
+    const filtered = allStopTimes.filter(st => st.stopId === normalizedStopId);
 
-    // Helper: parse GTFS time (HH:MM:SS) into seconds since midnight
-    // GTFS allows hours >= 24 for times after midnight (e.g., 25:10:00)
-    const parseTimeToSeconds = (timeStr) => {
-      if (!timeStr) return Number.POSITIVE_INFINITY;
-      const parts = String(timeStr).split(':');
-      if (parts.length < 2) return Number.POSITIVE_INFINITY;
-      const h = parseInt(parts[0], 10) || 0;
-      const m = parseInt(parts[1], 10) || 0;
-      const s = parseInt(parts[2], 10) || 0;
-      return h * 3600 + m * 60 + s;
-    };
-
-    // Sort by arrivalTime (ascending). If arrivalTime is missing, fallback to departureTime.
     filtered.sort((a, b) => {
       const aTime = parseTimeToSeconds(a.arrivalTime || a.departureTime);
       const bTime = parseTimeToSeconds(b.arrivalTime || b.departureTime);
