@@ -28,6 +28,7 @@ const Map = () => {
     setSearchError('');
     setIsEditingFilterValue(false);
     setSelectedTrain(null);
+    setZoomTarget(null);
   };
 
   const handleFilterValueChange = (newValue) => {
