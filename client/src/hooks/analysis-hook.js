@@ -2,10 +2,8 @@
 import { useState, useEffect } from 'react';
 import { analysisService } from '../services/analysis-service.js';
 
-// Shared colors for UI consistency
 const CHART_COLORS = ['#2da853', '#db4336', '#277bc0', '#7e57c2', '#f59825'];
 
-// Formatting helpers
 const formatTrafficLabel = (val) => {
   if (val === 0) return '0';
   if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
@@ -15,7 +13,6 @@ const formatTrafficLabel = (val) => {
 const formatPercentLabel = (val) => `${val}%`;
 const formatMinutesLabel = (val) => `${val} min`;
 
-// Hook accepts filters to pass down
 export const useAnalysis = (lineZone = '', stationZone = '', stationLine = '') => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +33,6 @@ export const useAnalysis = (lineZone = '', stationZone = '', stationLine = '') =
         setLoading(true);
         setError(null);
 
-        // Fetch data passing corresponding filters including global percentage
         const [
           rawBusiestLines,
           rawBusiestStations,
@@ -55,25 +51,27 @@ export const useAnalysis = (lineZone = '', stationZone = '', stationLine = '') =
           analysisService.getGlobalOnTimePercentage()
         ]);
 
-        // Helper function mapping database columns to UI
-        const mapData = (dataArray, nameKey, valueKey, formatter) => {
-          // Safeguard limit to top 5
+        // Single-line English comment: Helper to map domain rows into presentation-ready chart structures
+        const mapData = (dataArray, nameKey, valueKey, formatter, isLineData = false) => {
           if (!dataArray) return [];
           
           return dataArray.slice(0, 5).map((item, index) => {
             let processedValue = Number(item[valueKey] || 0);
 
-            // Convert seconds to rounded minutes
-            if (valueKey === 'average_delay_seconds') {
+            if (valueKey === 'averageDelaySeconds') {
               processedValue = Math.round(processedValue / 60);
-            } 
-            // Round percentage
-            else if (valueKey === 'delay_percentage') {
+            } else if (valueKey === 'delayPercentage') {
               processedValue = Math.round(processedValue);
             }
 
+            // Single-line English comment: Construct the final display name adding the urban zone prefix if no filter is active
+            let displayName = item[nameKey];
+            if (isLineData && lineZone === '' && item.urbanZone) {
+              displayName = `${item.urbanZone} - ${item[nameKey]}`;
+            }
+
             return {
-              name: item[nameKey],
+              name: displayName,
               value: processedValue,
               label: formatter(processedValue),
               color: CHART_COLORS[index % CHART_COLORS.length]
@@ -81,14 +79,13 @@ export const useAnalysis = (lineZone = '', stationZone = '', stationLine = '') =
           });
         };
 
-        // Update state with formatted data and scalar global index
         setDashboardData({
-          busiestLines: mapData(rawBusiestLines, 'line_name', 'total_traffic', formatTrafficLabel),
-          busiestStations: mapData(rawBusiestStations, 'station_name', 'total_traffic', formatTrafficLabel),
-          linesByDelayPct: mapData(rawLinesDelayPct, 'line_name', 'delay_percentage', formatPercentLabel),
-          stationsByDelayPct: mapData(rawStationsDelayPct, 'station_name', 'delay_percentage', formatPercentLabel),
-          linesByAvgDelay: mapData(rawLinesAvgDelay, 'line_name', 'average_delay_seconds', formatMinutesLabel),
-          stationsByAvgDelay: mapData(rawStationsAvgDelay, 'station_name', 'average_delay_seconds', formatMinutesLabel),
+          busiestLines: mapData(rawBusiestLines, 'lineName', 'totalTraffic', formatTrafficLabel, true),
+          busiestStations: mapData(rawBusiestStations, 'stationName', 'totalTraffic', formatTrafficLabel, false),
+          linesByDelayPct: mapData(rawLinesDelayPct, 'lineName', 'delayPercentage', formatPercentLabel, true),
+          stationsByDelayPct: mapData(rawStationsDelayPct, 'stationName', 'delayPercentage', formatPercentLabel, false),
+          linesByAvgDelay: mapData(rawLinesAvgDelay, 'lineName', 'averageDelaySeconds', formatMinutesLabel, true),
+          stationsByAvgDelay: mapData(rawStationsAvgDelay, 'stationName', 'averageDelaySeconds', formatMinutesLabel, false),
           globalOnTimePercentage: rawGlobalOnTimePercentage ? Number(rawGlobalOnTimePercentage) : 0
         });
 
@@ -101,7 +98,6 @@ export const useAnalysis = (lineZone = '', stationZone = '', stationLine = '') =
     };
 
     fetchDashboardData();
-  // Refetch data when filters change
   }, [lineZone, stationZone, stationLine]); 
 
   return { dashboardData, loading, error };
