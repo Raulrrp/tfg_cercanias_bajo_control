@@ -13,15 +13,12 @@ const Analysis = () => {
   const [stationLineFilter, setStationLineFilter] = useState('');
   const [stationUrbanZoneFilter, setStationUrbanZoneFilter] = useState('');
 
-  // Pull shared methods and lines/zones definitions from context instead of re-instantiating hooks
   const { 
     lineHelpers: { getLinesByZone }, 
     zoneHelpers: { zones },
     trainCount,
   } = useGlobalData();
 
-  // useAnalysis needs the value of the filters to get the info
-  // dashboardData gets the info
   const { dashboardData, loading, error } = useAnalysis(
     lineUrbanZoneFilter, 
     stationUrbanZoneFilter, 
@@ -93,7 +90,7 @@ const Analysis = () => {
           <TrainFront className="w-28 h-28 text-gray-400 stroke-[1]" />
         </KPICard>
 
-        <KPICard title="% de llegadas con retraso < 5 minutos" value={`${dashboardData.globalOnTimePercentage}%`} valueColor="text-[#6b8299]">
+        <KPICard title="Llegadas con retraso menor a 5 minutos" value={`${dashboardData.globalOnTimePercentage}%`} valueColor="text-[#6b8299]">
           <div className="w-40 h-20 relative flex items-end justify-center">
             <div className="w-32 h-16 border-[3px] border-b-0 border-[#6b8299] rounded-t-full absolute bottom-0 opacity-70"></div>
           </div>
@@ -108,7 +105,6 @@ const Analysis = () => {
           <select
             id="line-zone"
             value={lineUrbanZoneFilter}
-            
             onChange={(e) => {
               handleBothUrbanZoneFilters(e.target.value)
             }}
@@ -132,7 +128,7 @@ const Analysis = () => {
             xDomain={[0, 'dataMax']} 
           />
           <HorizontalChartCard 
-            title="Top 5 líneas con mayor % de retrasos" 
+            title="Top 5 líneas con mayor % de retrasos de más de 5 minutos" 
             data={dashboardData.linesByDelayPct} 
             dataKey="value" 
             labelKey="label" 
@@ -213,7 +209,7 @@ const Analysis = () => {
             xDomain={[0, 'dataMax']} 
             showBadges={true} 
           />
-        </div>
+        </div>  
       </div>
     </div>
   );
