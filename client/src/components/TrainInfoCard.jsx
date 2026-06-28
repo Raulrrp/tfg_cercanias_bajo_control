@@ -10,13 +10,14 @@ const formatDelay = (delay) => {
   if (delaySeconds > 0) {
     return { text: `+${delayMinutes} min retraso`, color: 'text-red-500 font-medium' };
   }
-  return { text: `-${delayMinutes} min adelanto`, color: 'text-blue-500' };
+  return { text: `${delayMinutes} min adelantado`, color: 'text-blue-500' };
 };
 
 const TrainInfoCard = ({ train, nextStopName, delay, onClose, inPopup = false }) => {
   if (!train) return null;
 
   const delayInfo = formatDelay(delay);
+  const stopHeading = train.status == 'STOPPED_AT' ? "Parado en: " : "Siguiente Parada: ";
 
   const innerContent = (
     <div className="font-sans text-gray-700">
@@ -41,7 +42,7 @@ const TrainInfoCard = ({ train, nextStopName, delay, onClose, inPopup = false })
           <span className="font-mono text-gray-800">{train.train?.id ?? train.id ?? 'N/D'}</span>
         </p>
         <p className="text-gray-600">
-          <span className="font-semibold text-gray-500 text-xs uppercase tracking-wide mr-1">Siguiente Parada:</span> 
+          <span className="font-semibold text-gray-500 text-xs uppercase tracking-wide mr-1">{stopHeading}</span> 
           <span className="text-gray-800 font-medium">{nextStopName ?? train.nextStationId ?? 'No disponible'}</span>
         </p>
         <div className="pt-1 flex items-center gap-1.5">
