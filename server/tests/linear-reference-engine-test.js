@@ -69,7 +69,7 @@ describe('LinearReferenceEngine Unit Tests', () => {
 
       assert.notStrictEqual(result, null);
       assert.strictEqual(result.source, 'projection');
-      assert.notStrictEqual(result.distanceAlongLine, undefined);
+      assert.strictEqual(Math.round(result.distanceAlongLine * 1000), 137);
     });
 
     test('should return null if fallback loader cannot find the station', () => {
