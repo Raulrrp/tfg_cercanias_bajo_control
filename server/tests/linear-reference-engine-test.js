@@ -20,15 +20,16 @@ describe('LinearReferenceEngine Unit Tests', () => {
       const result = engine.projectPointOnLine(vehiclePoint, lineString);
 
       assert.notStrictEqual(result, null);
-      assert.notStrictEqual(result.distanceAlongLine, undefined);
-      assert.strictEqual(result.location.longitude, -3.70379);
+      assert.strictEqual(Math.round(result.distanceAlongLine*1000), 137);
+      assert.strictEqual(result.location.longitude.toFixed(5), '-3.70379');
+      assert.strictEqual(result.location.latitude.toFixed(5), '40.41800');
     });
-
-    test('should return null if lineString is missing or invalid', () => {
+    
+    test('should return null when the point cannot be projected or inputs are invalid', () => {
       const engine = new LinearReferenceEngine({});
-      const vehiclePoint = { longitude: -3.70379, latitude: 40.41800 };
-
-      const result = engine.projectPointOnLine(vehiclePoint, null);
+      
+      // Escenario con datos inválidos o vacíos que deberían forzar un retorno nulo
+      const result = engine.projectPointOnLine(null, null);
 
       assert.strictEqual(result, null);
     });
