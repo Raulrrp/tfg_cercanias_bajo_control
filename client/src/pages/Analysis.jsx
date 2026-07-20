@@ -230,7 +230,7 @@ const Analysis = () => {
             loading={loading}
           />
           <HorizontalChartCard 
-            title="Top 5 Estaciones con mayor % de retrasos" 
+            title="Top 5 estaciones con mayor % de retrasos de más de 5 minutos" 
             data={dashboardData?.stationsByDelayPct} 
             dataKey="value" 
             labelKey="label" 
